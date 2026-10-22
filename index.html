@@ -6,6 +6,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{})</script>
 <meta name="apple-mobile-web-app-title" content="Estuda Comigo">
 <meta name="theme-color" content="#6a3fd1">
 </head>
@@ -127,6 +128,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .prep .pp{font-family:var(--display);font-size:26px;color:var(--accent)}.prep .xpbar{height:12px}.tm{font-size:14px;margin-top:2px}
 .bm{width:40px;height:40px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);display:grid;place-items:center;color:var(--muted);font-size:18px;flex:none}.bm.on{border-color:var(--fam);background:#fdeaf1}
 .topic .best small{font-weight:700;color:var(--muted)}
+.sc{color:var(--accent);font-weight:800}.sc.hot{color:var(--fam)}
 .sync{font-size:12px;color:var(--muted);text-align:center}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @keyframes pop{0%{transform:scale(.9);opacity:.4}100%{transform:scale(1);opacity:1}}
@@ -1048,6 +1050,7 @@ function build(t){
 
 function daysTo(d){const t=new Date();t.setHours(0,0,0,0);const x=new Date(d+'T00:00:00');return Math.round((x-t)/864e5)}
 function cdText(T){const n=daysTo(T.when);const w=T.kind==='ficha'?'a ficha':'o teste';if(n<0)return null;if(n===0)return `É hoje ${w} de ${T.subjName}! Boa sorte! 🍀`;if(n===1)return `${w[0].toUpperCase()+w.slice(1)} de ${T.subjName} é já amanhã! 💪`;return `Faltam ${n} dias para ${w} de ${T.subjName}`}
+function shortCd(k){const T=TESTS[k];const n=daysTo(T.when);const w=T.kind==='ficha'?'Ficha':'Teste';if(n<0)return T.kind==='ficha'?'1 ficha para treinar':'1 teste para treinar';if(n===0)return `<b class="sc hot">${w} hoje 🍀</b>`;if(n===1)return `<b class="sc hot">${w} amanhã!</b>`;return `<b class="sc">${w} em ${n} dias</b>`}
 function countdownAll(){const L=Object.values(TESTS).filter(T=>daysTo(T.when)>=0).sort((a,b)=>daysTo(a.when)-daysTo(b.when));if(!L.length)return'';return `<div class="cdbox">${L.map(T=>`<div class="cd ${daysTo(T.when)<=1?'hot':''}"><b>${daysTo(T.when)===0?'🍀':daysTo(T.when)}</b><span>${cdText(T)}</span></div>`).join('')}</div>`}
 function fmtT(s){s=Math.round(s/60);if(s<1)return'menos de 1 min';const h=Math.floor(s/60),m=s%60;return h?`${h} h ${m} min`:`${m} min`}
 let lastAct=0;function tick(){const now=Date.now();if(view.name==='quiz'&&lastAct){const d=Math.min((now-lastAct)/1000,120);S.time=S.time||{};S.time[cur]=(S.time[cur]||0)+d;const day=new Date().toISOString().slice(0,10);S.tday=S.tday||{};if(S.tday.d!==day)S.tday={d:day};S.tday[cur]=(S.tday[cur]||0)+d}lastAct=now}
@@ -1078,15 +1081,15 @@ function openTest(c){cur=c;go('test')}
 
 function home(){const L=level();
  return `<div class="hero pop"><img src="${IMG.think}" alt=""><div class="txt"><h1>Olá!</h1><p class="muted">Bora treinar? Escolhe a disciplina.</p>
- <span class="level">Nível ${L.i} · ${L.n}</span><div class="xpbar"><i style="width:${L.p}%"></i></div><span class="tag">${S.xp} pontos${L.next?` · faltam ${L.need} para ${L.next}`:' · nível máximo!'}</span></div></div>${countdownAll()}
+ <span class="level">Nível ${L.i} · ${L.n}</span><div class="xpbar"><i style="width:${L.p}%"></i></div><span class="tag">${S.xp} pontos${L.next?` · faltam ${L.need} para ${L.next}`:' · nível máximo!'}</span></div></div>
  <div class="grid">
-  <button class="subj on" onclick="go('english')"><span class="ic" style="background:var(--accent)">En</span><h3>Inglês</h3><span class="tag">1 teste para treinar</span></button>
+  <button class="subj on" onclick="go('english')"><span class="ic" style="background:var(--accent)">En</span><h3>Inglês</h3><span class="tag">${shortCd('en')}</span></button>
   <div class="subj off"><span class="ic" style="background:var(--ps)">Ma</span><h3>Matemática</h3><span class="tag">Em breve</span></div>
   <div class="subj off"><span class="ic" style="background:var(--fam)">Pt</span><h3>Português</h3><span class="tag">Em breve</span></div>
   <div class="subj off"><span class="ic" style="background:var(--adv)">Ci</span><h3>Ciências</h3><span class="tag">Em breve</span></div>
   <div class="subj off"><span class="ic" style="background:#0f8a8a">Ge</span><h3>Geografia</h3><span class="tag">Em breve</span></div>
-  <button class="subj on" onclick="go('hihome')"><span class="ic" style="background:#a0522d">Hi</span><h3>História</h3><span class="tag">1 ficha para treinar</span></button>
-  <button class="subj on" onclick="go('fqhome')"><span class="ic" style="background:var(--pc)">FQ</span><h3>Físico-Química</h3><span class="tag">1 teste para treinar</span></button>
+  <button class="subj on" onclick="go('hihome')"><span class="ic" style="background:#a0522d">Hi</span><h3>História</h3><span class="tag">${shortCd('hi')}</span></button>
+  <button class="subj on" onclick="go('fqhome')"><span class="ic" style="background:var(--pc)">FQ</span><h3>Físico-Química</h3><span class="tag">${shortCd('fq')}</span></button>
   <div class="subj off"><span class="ic" style="background:var(--mix)">Es</span><h3>Espanhol</h3><span class="tag">Em breve</span></div>
  </div>${syncMsg?`<p class="sync">${syncMsg}</p>`:''}`}
 
