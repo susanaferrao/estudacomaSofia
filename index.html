@@ -1009,7 +1009,7 @@ const LVX=[0,100,250,450,700,1000,1400,1900,2500,3200,4000,5000,6200,7600,9200,1
 const KEY = 'sofia-quiz-v1';
 const TESTS={en:{keys:['ps','adv','pc','mix','fam'],all:'all',err:'err',subj:'english',subjName:'Inglês',title:'1.º Teste',kind:'teste',when:'2026-10-22',sav:'esav',date:'TESTE DE 22 DE OUTUBRO 2026',name:'1.º Teste · Unit 1 Family Life'},
  hi:{keys:['h1','h2','h3','h4','h5'],all:'hall',err:'herr',subj:'hihome',subjName:'História',title:'Ficha',kind:'ficha',when:'2026-10-29',sav:'hsav',date:'FICHA DE 29 DE OUTUBRO 2026',name:'Civilização Egípcia e Hebreus'},
- fq:{keys:['f13','f14','f15','f16','f17','f18','f19'],all:'fall',err:'ferr',subj:'fqhome',subjName:'Físico-Química',kind:'teste',when:'2026-10-27',sav:'fsav',title:'1.º Teste',date:'TESTE DE 27 DE OUTUBRO 2026',name:'1.º Teste · Materiais (unidades 13 a 19)'}};
+ fq:{keys:['f13','f14','f16','f17','f18'],all:'fall',err:'ferr',subj:'fqhome',subjName:'Físico-Química',kind:'teste',when:'2026-10-27',sav:'fsav',title:'1.º Teste',date:'TESTE DE 27 DE OUTUBRO 2026',name:'1.º Teste · Materiais (unidades 13, 14, 16, 17 e 18)'}};
 let cur='en';const T_=()=>TESTS[cur];
 const inCur=i=>QS[i]&&T_().keys.includes(QS[i][0]);
 const size = () => [10,20,30].includes(S.size) ? S.size : 20;
