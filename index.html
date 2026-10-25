@@ -87,7 +87,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .opt.wrong{background:var(--bad-soft);border-color:var(--bad)} .opt.wrong .l{background:var(--bad);color:#fff;border-color:var(--bad)}
 .opt:disabled{cursor:default}
 .fb{border-radius:22px;padding:14px;display:flex;gap:12px;align-items:center}
-.fb img{width:96px;border-radius:14px;flex:none;align-self:stretch;object-fit:cover;object-position:top}
+.fb img{width:84px;height:auto;max-height:112px;flex:none;align-self:center;object-fit:contain}
 .fb.ok{background:var(--ok-soft);border:2px solid var(--ok)} .fb.no{background:var(--bad-soft);border:2px solid var(--bad)}
 .fb h3{font-size:20px}
 .fb .tip{margin-top:4px;font-size:15px}
@@ -129,6 +129,16 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .bm{width:40px;height:40px;border-radius:12px;background:var(--card);border:1.5px solid var(--line);display:grid;place-items:center;color:var(--muted);font-size:18px;flex:none}.bm.on{border-color:var(--fam);background:#fdeaf1}
 .topic .best small{font-weight:700;color:var(--muted)}
 .sc{color:var(--accent);font-weight:800}.sc.hot{color:var(--fam)}
+.weak .wk{background:var(--bad-soft);border-radius:12px;padding:10px 12px;font-weight:700;font-size:14px;display:flex;justify-content:space-between;gap:8px;text-align:left;width:100%}.weak .wk span:last-child{white-space:nowrap;color:var(--bad)}
+.ptext{font-size:17px;font-weight:700;line-height:1.45}
+.prow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:18px}.prow b{font-family:var(--display)}
+.pin{display:inline-flex;align-items:center;gap:6px}.pin input{width:110px;font:inherit;font-size:20px;font-weight:800;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}.pin input:focus{outline:none;border-color:var(--accent)}.pin span{font-weight:800;color:var(--muted)}
+.big2 .pin input{width:96px}
+.pmsg{border-radius:12px;padding:10px 12px;font-weight:800}.pmsg.ok{background:var(--ok-soft);color:#14663a}.pmsg.no{background:var(--bad-soft);color:#a12424}
+.ptab{background:#fff8e6;border:1.5px dashed #e0a800;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.7}
+.hintb{align-self:flex-start;font-weight:800;color:var(--accent);padding:4px 0}.phint{background:var(--accent-soft);border-radius:12px;padding:10px 12px;font-size:15px}
+.caderno{font-family:var(--body);font-size:16px}.caderno p{margin:2px 0}
+.qcard h3{font-size:19px}
 .sync{font-size:12px;color:var(--muted);text-align:center}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @keyframes pop{0%{transform:scale(.9);opacity:.4}100%{transform:scale(1);opacity:1}}
@@ -1042,6 +1052,7 @@ function stratified(ids,n){ // spread across subtopics
   while(out.length<n&&keys.some(k=>g[k].length>r)){keys.forEach(k=>{if(out.length<n&&g[k][r]!==undefined)out.push(g[k][r])});r++}
   return shuffle(out)}
 function build(t){
+  if(t.startsWith('sub:')){const key=t.slice(4);return fresh(QS.map((q,i)=>(q[0]+':'+q[1])===key?i:-1).filter(i=>i>=0),size())}
   if(t===T_().sav)return shuffle((S.saved||[]).filter(i=>inCur(i))).slice(0,size());
   if(t===T_().err)return shuffle(S.wrong.filter(i=>inCur(i))).slice(0,size());
   if(t===T_().all){const ks=T_().keys,n=size();let o=[];ks.forEach((k,j)=>{const per=Math.floor(n/ks.length)+(j<n%ks.length?1:0);o=o.concat(fresh(QS.map((q,i)=>q[0]===k?i:-1).filter(i=>i>=0),per))});return shuffle(o)}
@@ -1053,7 +1064,7 @@ function cdText(T){const n=daysTo(T.when);const w=T.kind==='ficha'?'a ficha':'o 
 function shortCd(k){const T=TESTS[k];const n=daysTo(T.when);const w=T.kind==='ficha'?'Ficha':'Teste';if(n<0)return T.kind==='ficha'?'1 ficha para treinar':'1 teste para treinar';if(n===0)return `<b class="sc hot">${w} hoje 🍀</b>`;if(n===1)return `<b class="sc hot">${w} amanhã!</b>`;return `<b class="sc">${w} em ${n} dias</b>`}
 function countdownAll(){const L=Object.values(TESTS).filter(T=>daysTo(T.when)>=0).sort((a,b)=>daysTo(a.when)-daysTo(b.when));if(!L.length)return'';return `<div class="cdbox">${L.map(T=>`<div class="cd ${daysTo(T.when)<=1?'hot':''}"><b>${daysTo(T.when)===0?'🍀':daysTo(T.when)}</b><span>${cdText(T)}</span></div>`).join('')}</div>`}
 function fmtT(s){s=Math.round(s/60);if(s<1)return'menos de 1 min';const h=Math.floor(s/60),m=s%60;return h?`${h} h ${m} min`:`${m} min`}
-let lastAct=0;function tick(){const now=Date.now();if(view.name==='quiz'&&lastAct){const d=Math.min((now-lastAct)/1000,120);S.time=S.time||{};S.time[cur]=(S.time[cur]||0)+d;const day=new Date().toISOString().slice(0,10);S.tday=S.tday||{};if(S.tday.d!==day)S.tday={d:day};S.tday[cur]=(S.tday[cur]||0)+d}lastAct=now}
+let lastAct=0;function tick(){const now=Date.now();if((view.name==='quiz'||view.name==='psolve')&&lastAct){const d=Math.min((now-lastAct)/1000,120);S.time=S.time||{};S.time[cur]=(S.time[cur]||0)+d;const day=new Date().toISOString().slice(0,10);S.tday=S.tday||{};if(S.tday.d!==day)S.tday={d:day};S.tday[cur]=(S.tday[cur]||0)+d}lastAct=now}
 function toggleSave(){const id=quiz.ids[quiz.i];S.saved=S.saved||[];const k=S.saved.indexOf(id);if(k>=0)S.saved.splice(k,1);else S.saved.push(id);save();render()}
 function prep(){const ks=T_().keys;let tot=0,weak=null;ks.forEach(k=>{const cv=cover(k).p/100;const r=(S.rec||{})[k]||[];const acc=r.length?r.reduce((a,b)=>a+b,0)/r.length:0;const conf=Math.min(r.length/10,1);const sc=0.4*cv+0.6*acc*conf;tot+=sc;if(!weak||sc<weak[1])weak=[k,sc]});return {p:Math.round(tot/ks.length*100),weak:weak&&TOPICS[weak[0]].n}}
 function recAdd(k,good){S.rec=S.rec||{};const r=S.rec[k]=S.rec[k]||[];r.push(good?1:0);if(r.length>20)r.shift()}
@@ -1076,8 +1087,94 @@ function setSize(n){S.size=n;save();render()}
 function go(n){view={name:n};render();window.scrollTo(0,0)}
 function stats(t){const h=S.history.filter(x=>x.t===t);if(!h.length)return null;const p=h.map(x=>Math.round(x.c/x.n*100));return {n:h.length,last:p[p.length-1],best:Math.max(...p),avg:Math.round(p.reduce((a,b)=>a+b,0)/p.length),prev:p.length>1?p[p.length-2]:null}}
 
-function render(){const a=$('#app');a.innerHTML=({home,english,fqhome,hihome,test,quiz:qview,result,prog})[view.name]();}
+function render(){const a=$('#app');a.innerHTML=({home,english,fqhome,hihome,plist,psolve,test,quiz:qview,result,prog})[view.name]();}
 function openTest(c){cur=c;go('test')}
+
+// ===== Problemas: massa, volume e concentração (unidade 17) =====
+// data given as written in the statement: [symbol, value, unit]; conv: values needed in g / dm³
+const PROBS=[
+{t:'Pretende-se preparar 0,200 dm³ de uma solução aquosa de sulfato de cobre(II), com uma concentração de 0,250 g/dm³. Determina a massa de sulfato de cobre(II) necessária.',f:'m',d:[['V',0.200,'dm³'],['c',0.250,'g/dm³']],cv:[],a:0.0500},
+{t:'Dissolveu-se 1,00 g de sulfato de cobre(II) em água, obtendo-se 0,200 dm³ de solução. Calcula a concentração mássica da solução.',f:'c',d:[['m',1.00,'g'],['V',0.200,'dm³']],cv:[],a:5.00},
+{t:'Uma solução tem 2,00 g de sulfato de cobre(II) dissolvidos em 0,100 dm³ de solução. Calcula a concentração mássica.',f:'c',d:[['m',2.00,'g'],['V',0.100,'dm³']],cv:[],a:20.0},
+{t:'Uma solução de sulfato de cobre(II) tem concentração 0,250 g/dm³ e contém 0,0500 g de soluto. Calcula o volume da solução.',f:'V',d:[['m',0.0500,'g'],['c',0.250,'g/dm³']],cv:[],a:0.200},
+{t:'Pretende-se preparar uma solução de cloreto de sódio com concentração 30 g/dm³, usando 6,0 g de cloreto de sódio. Que volume de solução se obtém?',f:'V',d:[['m',6.0,'g'],['c',30,'g/dm³']],cv:[],a:0.20},
+{t:'Dissolveram-se 5,0 g de açúcar em água, obtendo-se 250 cm³ de solução. Calcula a concentração mássica em g/dm³.',f:'c',d:[['m',5.0,'g'],['V',250,'cm³']],cv:[['V',250,'cm³',0.250,'dm³']],a:20},
+{t:'Prepararam-se 150 cm³ de uma solução com 0,75 g de sulfato de cobre(II). Calcula a concentração mássica em g/dm³.',f:'c',d:[['m',0.75,'g'],['V',150,'cm³']],cv:[['V',150,'cm³',0.150,'dm³']],a:5.0},
+{t:'No laboratório, mediram-se 0,80 g de sulfato de cobre(II) e preparou-se uma solução num balão volumétrico de 200 cm³. Calcula a concentração mássica em g/dm³.',f:'c',d:[['m',0.80,'g'],['V',200,'cm³']],cv:[['V',200,'cm³',0.200,'dm³']],a:4.0},
+{t:'Pretende-se preparar 500 mL de uma solução de cloreto de sódio com concentração 10 g/dm³. Que massa de cloreto de sódio é necessária?',f:'m',d:[['V',500,'mL'],['c',10,'g/dm³']],cv:[['V',500,'mL',0.500,'dm³']],a:5.0},
+{t:'Dissolveram-se 250 mg de cloreto de potássio em água, obtendo-se 0,500 dm³ de solução. Calcula a concentração mássica em g/dm³.',f:'c',d:[['m',250,'mg'],['V',0.500,'dm³']],cv:[['m',250,'mg',0.250,'g']],a:0.50},
+{t:'Pretende-se preparar 100 cm³ de uma solução de sulfato de cobre(II) com concentração 5,00 g/dm³. Determina a massa de soluto necessária.',f:'m',d:[['V',100,'cm³'],['c',5.00,'g/dm³']],cv:[['V',100,'cm³',0.100,'dm³']],a:0.500},
+{t:'Uma solução de açúcar tem concentração 12 g/dm³ e contém 3,0 g de açúcar. Calcula o volume de solução em dm³.',f:'V',d:[['m',3.0,'g'],['c',12,'g/dm³']],cv:[],a:0.25},
+{t:'Uma solução de sulfato de cobre(II) com concentração 2,0 g/dm³ contém 400 mg de soluto. Calcula o volume de solução em dm³.',f:'V',d:[['m',400,'mg'],['c',2.0,'g/dm³']],cv:[['m',400,'mg',0.400,'g']],a:0.20},
+{t:'Pretende-se preparar 1,5 L de uma solução de cloreto de sódio com concentração 8,0 g/dm³. Que massa de cloreto de sódio é necessária?',f:'m',d:[['V',1.5,'L'],['c',8.0,'g/dm³']],cv:[['V',1.5,'L',1.5,'dm³']],a:12},
+{t:'Dissolveram-se 0,90 g de cloreto de potássio, obtendo-se 600 cm³ de solução. Calcula a concentração mássica em g/dm³.',f:'c',d:[['m',0.90,'g'],['V',600,'cm³']],cv:[['V',600,'cm³',0.600,'dm³']],a:1.5},
+{t:'Dissolveram-se 2,5 g de açúcar em água, obtendo-se 50 cm³ de solução. Calcula a concentração mássica em g/dm³.',f:'c',d:[['m',2.5,'g'],['V',50,'cm³']],cv:[['V',50,'cm³',0.050,'dm³']],a:50,ch:1},
+{t:'Pretende-se preparar 750 mL de uma solução com concentração 4,0 g/dm³. Que massa de soluto é necessária?',f:'m',d:[['V',750,'mL'],['c',4.0,'g/dm³']],cv:[['V',750,'mL',0.750,'dm³']],a:3.0,ch:1},
+{t:'Uma solução foi preparada com 120 mg de sulfato de cobre(II), obtendo-se 40 cm³ de solução. Calcula a concentração mássica em g/dm³.',f:'c',d:[['m',120,'mg'],['V',40,'cm³']],cv:[['m',120,'mg',0.120,'g'],['V',40,'cm³',0.040,'dm³']],a:3.0,ch:1},
+{t:'Uma solução de cloreto de sódio tem concentração 6,0 g/dm³ e contém 1,2 g de soluto. Que volume de solução, em dm³, foi preparado?',f:'V',d:[['m',1.2,'g'],['c',6.0,'g/dm³']],cv:[],a:0.20,ch:1},
+{t:'Pretende-se preparar 300 cm³ de uma solução de cloreto de potássio com concentração 0,50 g/dm³. Que massa de cloreto de potássio é necessária?',f:'m',d:[['V',300,'cm³'],['c',0.50,'g/dm³']],cv:[['V',300,'cm³',0.300,'dm³']],a:0.15,ch:1},
+];
+const PN={m:'massa',V:'volume',c:'concentração mássica'};const PU={m:'g',V:'dm³',c:'g/dm³'};
+const FORM={c:['c','m','V','/'],m:['m','c','V','×'],V:['V','m','c','/']};
+let PR=null;
+function nf(x){return Number(x).toLocaleString('pt-PT',{maximumFractionDigits:4})}
+function pnum(s){if(s==null)return NaN;s=String(s).trim().replace(/\s/g,'').replace(',','.');if(!/^-?\d*\.?\d+$/.test(s))return NaN;return parseFloat(s)}
+function pClose(a,b){return Math.abs(a-b)<=Math.max(1e-9,Math.abs(b)*0.011)}
+function fr(f){const [l,a,b,op]=FORM[f];return op==='/'?`${l} = <span class="frac"><span>${a}</span><span>${b}</span></span>`:`${l} = ${a} × ${b}`}
+function pstate(){S.prob=S.prob||{};return S.prob}
+function plist(){const ps=pstate();const done=PROBS.filter((p,i)=>ps[i]&&ps[i].ok).length;
+ return `${header('test','Problemas de concentração')}
+ <div class="panel"><p><b>Calcular massa, volume ou concentração, passo a passo.</b></p><p class="muted" style="font-size:13px">Em cada problema vais identificar os dados, converter as unidades, escolher a fórmula e fazer a conta. Os últimos 5 são desafios: só a resposta final (com ajuda se precisares).</p>
+ <div class="trow"><span class="nm">Problemas resolvidos</span><span class="v">${done}/20</span><div class="tbar"><i style="width:${done/20*100}%;background:var(--accent)"></i></div></div></div>
+ <div class="list">${PROBS.map((p,i)=>{const st=ps[i];return `<button class="topic" style="--c:${p.ch?'#d6336c':'#e8730c'}" onclick="pOpen(${i})"><div style="flex:1;min-width:0"><div class="n">${p.ch?'⭐ Desafio':'Problema'} ${i+1}</div><div class="s">${'Calcular a '+PN[p.f]}${p.cv.length?' · com conversão':''}</div></div><span class="best">${st&&st.ok?(st.clean?'✓ Perfeito':'✓ Feito'):'Novo!'}</span></button>`}).join('')}</div>`}
+function pOpen(i){const p=PROBS[i];PR={i,step:p.ch?'final':'dados',tries:0,errs:0,ci:0,msg:'',hint:false};lastAct=Date.now();view={name:'psolve'};render();window.scrollTo(0,0)}
+function pMsg(ok,txt){PR.msg=`<div class="pmsg ${ok?'ok':'no'}">${txt}</div>`}
+function pWrong(txt,reveal){PR.tries++;PR.errs++;if(PR.tries>=2&&reveal){reveal();PR.tries=0;return true}pMsg(false,txt);render();return false}
+function pNext(step){tick();PR.step=step;PR.tries=0;PR.hint=false;render()}
+function pCheck(){const p=PROBS[PR.i];const v=id=>pnum(($('#'+id)||{}).value);
+ if(PR.step==='dados'){const ok=p.d.every((d,j)=>pClose(v('d'+j),d[1]));if(ok){pMsg(true,'Boa! Dados identificados.');return pNext('pede')}
+   return pWrong('Volta a ler o enunciado e copia os números tal como aparecem.',()=>{pMsg(false,'Os dados eram: '+p.d.map(d=>`${d[0]} = ${nf(d[1])} ${d[2]}`).join(' · '));pNext('pede')})}
+ if(PR.step==='conv2'){const c=p.cv[PR.ci];if(pClose(v('cv'),c[3])){pMsg(true,`Certo: ${nf(c[1])} ${c[2]} = ${nf(c[3])} ${c[4]}`);PR.ci++;return pNext(PR.ci<p.cv.length?'conv2':'form')}
+   return pWrong(`Atenção à conversão de ${c[2]} para ${c[4]}. Usa a tabela.`,()=>{pMsg(false,`A conversão certa: ${nf(c[1])} ${c[2]} = ${nf(c[3])} ${c[4]}`);PR.ci++;pNext(PR.ci<p.cv.length?'conv2':'form')})}
+ if(PR.step==='subst'){const [l,a,b]=FORM[p.f];const val=s=>{const c=p.cv.find(x=>x[0]===s);if(c)return c[3];return p.d.find(x=>x[0]===s)[1]};
+   const x=v('s1'),y=v('s2');const ok=(pClose(x,val(a))&&pClose(y,val(b)))||(FORM[p.f][3]==='×'&&close(x,val(b))&&pClose(y,val(a)));
+   if(ok){pMsg(true,'Valores bem substituídos!');return pNext('calc')}
+   return pWrong('Usa os valores já nas unidades certas (g e dm³).',()=>{pMsg(false,`Devias ter substituído: ${l} = ${nf(val(a))} ${FORM[p.f][3]} ${nf(val(b))}`);pNext('calc')})}
+ if(PR.step==='calc'||PR.step==='final'){if(pClose(v('res'),p.a)){pMsg(true,`Certo! ${PN[p.f][0].toUpperCase()+PN[p.f].slice(1)} = ${nf(p.a)}`);return pNext('unid')}
+   return pWrong('O resultado não está certo. Confirma a conta (atenção às vírgulas).',()=>{pMsg(false,`O resultado é ${nf(p.a)}.`);pNext('unid')})}
+}
+function pChoose(kind,val){const p=PROBS[PR.i];
+ if(kind==='pede'){if(val===p.f){pMsg(true,'Isso mesmo!');return pNext('conv')}return pWrong('Lê a pergunta final do problema: o que te pedem para determinar?',()=>{pMsg(false,`Pedem a ${PN[p.f]}.`);pNext('conv')})}
+ if(kind==='conv'){const need=p.cv.length>0;if(val===need){pMsg(true,need?'Sim, é preciso converter primeiro.':'Certo, já está tudo em g e dm³.');PR.ci=0;return pNext(need?'conv2':'form')}
+   return pWrong(need?'Repara: há valores que não estão em g ou dm³.':'Olha bem: a massa está em g e o volume em dm³.',()=>{pMsg(false,need?'Era preciso converter.':'Não era preciso converter.');PR.ci=0;pNext(need?'conv2':'form')})}
+ if(kind==='form'){if(val===p.f){pMsg(true,'Fórmula certa!');return pNext('subst')}return pWrong(`Queres a ${PN[p.f]}: escolhe a fórmula em que o ${p.f} está sozinho.`,()=>{pMsg(false,'A fórmula certa é '+fr(p.f));pNext('subst')})}
+ if(kind==='unid'){if(val===PU[p.f]){return pFinish()}return pWrong(`Qual é a unidade de ${PN[p.f]}?`,()=>{pFinish()})}
+}
+function pFinish(){const p=PROBS[PR.i];const ps=pstate();const clean=PR.errs===0;const prev=ps[PR.i]||{};ps[PR.i]={ok:1,clean:prev.clean||clean};
+ S.xp+=clean?20:10;recAdd('f17',clean);tick();save();PR.step='fim';render();window.scrollTo(0,0)}
+const TAB='<div class="ptab"><b>Tabela de conversões</b><br>kg →×1000→ g →×1000→ mg<br>m³ →×1000→ dm³ →×1000→ cm³<br>1 L = 1 dm³ · 1 mL = 1 cm³<br>Para a unidade maior: divide (÷1000).</div>';
+const HINTS={dados:'Procura no enunciado os números com unidades (g, mg, cm³, mL, dm³, L, g/dm³).',pede:'A pergunta está no fim do enunciado: "determina a massa", "calcula o volume"…',conv:'Na fórmula, a massa tem de estar em g e o volume em dm³.',conv2:'Para passar para uma unidade maior (cm³→dm³, mg→g, mL→dm³) divide por 1000: anda com a vírgula 3 casas para a esquerda.',form:'c = m / V. Se queres o m, multiplica: m = c × V. Se queres o V, divide: V = m / c.',subst:'Escreve os números já convertidos, pela ordem da fórmula.',calc:'Faz a conta com os números que substituíste. Podes usar vírgula.',final:'Toca em "Ajuda passo a passo" se precisares.',unid:'massa → g · volume → dm³ · concentração → g/dm³'};
+function psolve(){const p=PROBS[PR.i];const s=PR.step;let body='';
+ const known=p.d.map(d=>`${d[0]} = ${nf(d[1])} ${d[2]}`).join(' · ');
+ const inp=(id,ph,u)=>`<span class="pin"><input id="${id}" inputmode="decimal" autocomplete="off" placeholder="${ph}">${u?`<span>${u}</span>`:''}</span>`;
+ const ch=(kind,opts)=>`<div class="opts">${opts.map(([v,l])=>`<button class="opt" onclick="pChoose('${kind}',${JSON.stringify(v).replace(/"/g,'&quot;')})"><span>${l}</span></button>`).join('')}</div>`;
+ if(s==='dados')body=`<h3>Passo 1 · Quais são os dados?</h3><p class="muted">Escreve os valores que aparecem no enunciado.</p>${p.d.map((d,j)=>`<div class="prow"><b>${d[0]} =</b>${inp('d'+j,'valor',d[2])}</div>`).join('')}<div class="prow"><b>${p.f} =</b> <span class="muted">? (é o que queres saber)</span></div><button class="big" onclick="pCheck()">Verificar</button>`;
+ if(s==='pede')body=`<h3>Passo 2 · O que te pedem?</h3>${ch('pede',[['m','A massa (m)'],['V','O volume (V)'],['c','A concentração mássica (c)']])}`;
+ if(s==='conv')body=`<h3>Passo 3 · As unidades estão certas?</h3><p class="muted">Dados: ${known}</p><p>Na fórmula usamos a massa em <b>g</b> e o volume em <b>dm³</b>.</p>${ch('conv',[[false,'Sim, já está tudo em g e dm³'],[true,'Não, tenho de converter']])}`;
+ if(s==='conv2'){const c=p.cv[PR.ci];body=`<h3>Passo 3 · Converte</h3><div class="prow"><b>${nf(c[1])} ${c[2]} =</b>${inp('cv','?',c[4])}</div>${TAB}<button class="big" onclick="pCheck()">Verificar</button>`}
+ if(s==='form')body=`<h3>Passo 4 · Que fórmula usas?</h3>${ch('form',[['c',fr('c')],['m',fr('m')],['V',fr('V')]])}`;
+ if(s==='subst'){const [l,a,b,op]=FORM[p.f];body=`<h3>Passo 5 · Substitui os valores</h3><p class="muted">Fórmula: ${fr(p.f)}</p><div class="prow big2"><b>${l} =</b>${inp('s1',a)}<b>${op==='/'?'÷':'×'}</b>${inp('s2',b)}</div><button class="big" onclick="pCheck()">Verificar</button>`}
+ if(s==='calc'){const [l]=FORM[p.f];body=`<h3>Passo 6 · Calcula</h3><div class="prow big2"><b>${l} =</b>${inp('res','resultado')}</div><button class="big" onclick="pCheck()">Verificar</button>`}
+ if(s==='final')body=`<h3>⭐ Desafio · Resposta final</h3><p class="muted">Resolve no caderno e escreve só o resultado (em ${PU[p.f]}).</p><div class="prow big2"><b>${p.f} =</b>${inp('res','resultado',PU[p.f])}</div><button class="big" onclick="pCheck()">Verificar</button><button class="ghost" onclick="PR.step='dados';PR.msg='';render()">Ajuda passo a passo</button>`;
+ if(s==='unid')body=`<h3>Último passo · Qual é a unidade?</h3>${ch('unid',[['g','g'],['dm³','dm³'],['g/dm³','g/dm³']])}`;
+ if(s==='fim'){const [l,a,b,op]=FORM[p.f];const val=x=>{const c=p.cv.find(y=>y[0]===x);return c?c[3]:p.d.find(y=>y[0]===x)[1]};const ps=pstate()[PR.i];
+  body=`<div class="fb ${PR.errs?'no':'ok'}" style="${PR.errs?'background:var(--accent-soft);border-color:var(--accent)':''}"><img src="${PR.errs?IMG.think:IMG.happy}" alt=""><div><h3>${PR.errs?'Problema resolvido!':'Perfeito, sem erros!'}</h3><p>Ganhaste ${PR.errs?10:20} pontos.</p></div></div>
+  <div class="panel caderno"><b>Resolução</b><p>Dados: ${known} · ${p.f} = ?</p>${p.cv.map(c=>`<p>${nf(c[1])} ${c[2]} = ${nf(c[3])} ${c[4]}</p>`).join('')}<p>${fr(p.f)}</p><p>${l} = ${nf(val(a))} ${op==='/'?'÷':'×'} ${nf(val(b))}</p><p><b>${l} = ${nf(p.a)} ${PU[p.f]}</b></p></div>
+  ${PR.i<19?`<button class="big" onclick="pOpen(${PR.i+1})">Próximo problema →</button>`:''}<button class="ghost" onclick="go('plist')">Voltar à lista</button>`}
+ return `<div class="qtop" style="--c:#e8730c"><button class="back" aria-label="Sair" onclick="go('plist')">×</button><div class="prog"><i style="width:${(PR.i+1)/20*100}%"></i></div><span class="count">${PR.i+1}/20</span></div>
+ <div class="qcard"><span class="qchip" style="background:${p.ch?'#d6336c':'#e8730c'}">${p.ch?'⭐ Desafio':'Problema'} ${PR.i+1}</span><div class="ptext">${p.t}</div></div>
+ ${s!=='fim'?`<div class="qcard">${PR.msg}${body}${s!=='final'&&HINTS[s]?`<button class="hintb" onclick="PR.hint=!PR.hint;render()">💡 Ajuda</button>${PR.hint?`<div class="phint">${HINTS[s]}</div>`:''}`:''}</div>`:body}`}
+
 
 function home(){const L=level();
  return `<div class="hero pop"><img src="${IMG.think}" alt=""><div class="txt"><h1>Olá!</h1><p class="muted">Bora treinar? Escolhe a disciplina.</p>
@@ -1121,6 +1218,7 @@ function test(){
  <div class="panel" style="gap:6px"><div class="trow"><span class="nm">Perguntas já vistas</span><span class="v">${tot[0]}/${tot[1]} · ${tp}%</span><div class="tbar"><i style="width:${tp}%;background:var(--accent)"></i></div></div><p class="muted" style="font-size:13px">A app mostra primeiro as perguntas que ainda não viste. Só repete quando já tiveres visto todas.</p></div>
  <div class="list">${tl}
  <button class="topic" style="--c:var(--all)" onclick="start('${T_().all}')"><div><div class="n">★ Mistura tudo</div><div class="s">Um pouco de cada matéria, como no teste</div></div><span class="best">${sa?`Recorde ${sa.best}%<br><small>Média ${sa.avg}%</small>`:'Novo!'}</span></button></div>
+ ${cur==='fq'?`<button class="topic" style="--c:#e8730c;border-left-width:8px" onclick="go('plist')"><div style="flex:1;min-width:0"><div class="n">🧮 Problemas: massa, volume e concentração</div><div class="s">20 problemas resolvidos passo a passo</div><div class="cov"><div class="cbar"><i style="width:${PROBS.filter((p,i)=>(S.prob||{})[i]&&S.prob[i].ok).length/20*100}%"></i></div><span>Feitos ${PROBS.filter((p,i)=>(S.prob||{})[i]&&S.prob[i].ok).length}/20</span></div></div></button>`:''}
  <div class="pill2"><button onclick="${nw?`start('${T_().err}')`:''}" ${nw?'':'disabled style="opacity:.5"'}>Os meus erros<span>${nw} para rever</span></button>
  <button onclick="${ns?`start('${T_().sav}')`:''}" ${ns?'':'disabled style="opacity:.5"'}>🔖 Guardadas<span>${ns} para rever</span></button></div><div class="pill2"><button onclick="go('prog')">A minha evolução<span>${S.history.filter(x=>[...T_().keys,T_().all,T_().err].includes(x.t)).length} rondas feitas</span></button></div>`}
 
@@ -1152,14 +1250,14 @@ function qview(){
 function result(){const n=quiz.ids.length,p=Math.round(quiz.ok/n*100);
  const st=p>=90?3:p>=70?2:p>=50?1:0;const img=p>=70?IMG.happy:p>=50?IMG.think:IMG.sad;
  const msg=p===100?'PERFEITO! +50 pontos bónus!':p>=90?'Estás pronta para o teste!':p>=70?'Muito bem! Mais uma ronda e chegas aos 90%.':p>=50?'Vais no bom caminho. Revê os erros!':'Não desistas: lê os cartões e tenta outra vez.';
- return `<div class="res pop"><img src="${img}" alt=""><span class="tag">${TOPICS[quiz.t].n}</span><div class="score">${quiz.ok}/${n}</div>
+ return `<div class="res pop"><img src="${img}" alt=""><span class="tag">${quiz.t.startsWith('sub:')?SUBN[quiz.t.slice(4)]:TOPICS[quiz.t].n}</span><div class="score">${quiz.ok}/${n}</div>
  <div class="stars">${[0,1,2].map(i=>`<span class="${i<st?'':'off'}">★</span>`).join('')}</div><h3>${msg}</h3><p class="muted">Ganhaste ${quiz.ok*10+(p===100&&n>=10?50:0)} pontos.</p></div>
  <button class="big" onclick="start('${quiz.t}')">Nova ronda</button>
  ${S.wrong.filter(i=>inCur(i)).length?`<button class="ghost" onclick="start('${T_().err}')">Rever os meus erros (${S.wrong.filter(i=>inCur(i)).length})</button>`:''}
  <button class="ghost" onclick="go('test')">Voltar às matérias</button>`}
 
 function prog(){
- const TK=[...T_().keys,T_().all,T_().err];const H=S.history.filter(x=>TK.includes(x.t));if(!H.length)return `${header('test','A minha evolução')}<div class="panel empty">Ainda não fizeste nenhuma ronda. Faz a primeira e volta aqui para ver a tua evolução!</div>`;
+ const TK=[...T_().keys,T_().all,T_().err,T_().sav];const H=S.history.filter(x=>TK.includes(x.t)||(x.t.startsWith('sub:')&&T_().keys.includes(x.t.slice(4).split(':')[0])));if(!H.length)return `${header('test','A minha evolução')}<div class="panel empty">Ainda não fizeste nenhuma ronda. Faz a primeira e volta aqui para ver a tua evolução!</div>`;
  const pcts=H.map(x=>Math.round(x.c/x.n*100));const avg=Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
  const last=H.slice(-15),W=320,Hh=150,pl=30,pr=10,pt=10,pb=22;
  const xs=i=>pl+(last.length===1?(W-pl-pr)/2:i*(W-pl-pr)/(last.length-1)),ys=v=>pt+(100-v)/100*(Hh-pt-pb);
@@ -1179,7 +1277,7 @@ function prog(){
  ${evo!==null?`<p><b>${evo>0?'Estás a evoluir! 🚀':evo<0?'As últimas rondas correram pior. Revê os erros.':'Estás estável.'}</b> <span class="muted">Últimas 5 rondas vs primeiras 5: ${evo>0?'+':''}${evo} pontos percentuais.</span></p>`:'<p class="muted">Faz pelo menos 6 rondas para ver se estás a evoluir.</p>'}</div>
  <div class="panel chart"><h3>Acertos nas últimas ${last.length} rondas</h3>${chart}</div>
  <div class="panel"><h3>Por matéria</h3><p class="muted" style="font-size:13px">Conta todas as respostas, também as da Mistura.</p>${rows}</div>
- <div class="panel"><h3>O que ainda precisa de treino</h3>${weak.length?`<div class="weak">${weak.map(([k,p])=>`<div><span>${SUBN[k]}</span><span>${p}%</span></div>`).join('')}</div>`:'<p class="muted">Nada abaixo de 80% (com pelo menos 3 respostas). Continua assim!</p>'}</div>
+ <div class="panel"><h3>O que ainda precisa de treino</h3>${weak.length?'<p class="muted" style="font-size:13px">Toca numa área para treinar só essas perguntas.</p>':''}${weak.length?`<div class="weak">${weak.map(([k,p])=>`<button class="wk" onclick="start('sub:${k}')"><span>${SUBN[k]}</span><span>${p}% · Treinar ›</span></button>`).join('')}</div>`:'<p class="muted">Nada abaixo de 80% (com pelo menos 3 respostas). Continua assim!</p>'}</div>
  ${syncMsg?`<p class="sync">${syncMsg}</p>`:''}`}
 
 render();
