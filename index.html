@@ -140,6 +140,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .caderno{font-family:var(--body);font-size:16px}.caderno p{margin:2px 0}
 .qcard h3{font-size:19px}
 .sub2{font-weight:800;color:var(--muted);font-size:16px;margin-top:-4px}
+.party{position:fixed;inset:0;width:100%;height:100%;z-index:60;pointer-events:auto}
 .sync{font-size:12px;color:var(--muted);text-align:center}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @keyframes pop{0%{transform:scale(.9);opacity:.4}100%{transform:scale(1);opacity:1}}
@@ -978,6 +979,7 @@ const TOPICS = {
   fam:{n:'Family members',s:'Vocabulário da família',c:'var(--fam)'},
   all:{n:'Mistura tudo',s:'Como no teste: um pouco de cada',c:'var(--all)'},
   err:{n:'Os meus erros',s:'Repete o que falhaste',c:'var(--bad)'},
+  ehard:{n:'Difíceis',s:'As que mais falhas',c:'#c2410c'},fhard:{n:'Difíceis',s:'As que mais falhas',c:'#c2410c'},hhard:{n:'Difíceis',s:'As que mais falhas',c:'#c2410c'},
   esav:{n:'Guardadas',s:'Perguntas que guardaste',c:'#d6336c'},fsav:{n:'Guardadas',s:'Perguntas que guardaste',c:'#d6336c'},hsav:{n:'Guardadas',s:'Perguntas que guardaste',c:'#d6336c'},
   f13:{n:'Classificação e reutilização de materiais',s:'Origem, estado físico, solubilidade, 4 R',c:'#1f9452'},
   f14:{n:'Substâncias e misturas',s:'Homogéneas, heterogéneas, coloidais, puro',c:'#2563c9'},
@@ -1018,9 +1020,9 @@ const NO = ['Ups! Quase…','Oh não!','Esta enganou-te!','Não faz mal, aprende
 const LEVELS = ['Principiante','Aprendiz','Curiosa','Exploradora','Detetive','Investigadora','Estudiosa','Craque','Cientista','Inventora','Sábia','Professora','Génia','Mestre','Grande Mestre','Campeã','Heroína','Estrela','Super Estrela','Lenda'];
 const LVX=[0,100,250,450,700,1000,1400,1900,2500,3200,4000,5000,6200,7600,9200,11000,13000,15500,18500,22000];
 const KEY = 'sofia-quiz-v1';
-const TESTS={en:{keys:['ps','adv','pc','mix','fam'],all:'all',err:'err',subj:'english',subjName:'Inglês',title:'1.º Teste',kind:'teste',when:'2026-10-22',sav:'esav',date:'TESTE DE 22 DE OUTUBRO 2026',name:'1.º Teste · Unit 1 Family Life'},
- hi:{keys:['h1','h2','h3','h4','h5'],all:'hall',err:'herr',subj:'hihome',subjName:'História',title:'Ficha',kind:'ficha',when:'2026-10-29',sav:'hsav',date:'FICHA DE 29 DE OUTUBRO 2026',name:'Civilização Egípcia e Hebreus'},
- fq:{keys:['f13','f14','f16','f17','f18'],all:'fall',err:'ferr',subj:'fqhome',subjName:'Físico-Química',kind:'teste',when:'2026-10-27',sav:'fsav',title:'1.º Teste',date:'TESTE DE 27 DE OUTUBRO 2026',name:'1.º Teste · Materiais (unidades 13, 14, 16, 17 e 18)'}};
+const TESTS={en:{keys:['ps','adv','pc','mix','fam'],all:'all',err:'err',subj:'english',subjName:'Inglês',title:'1.º Teste',kind:'teste',when:'2026-10-22',sav:'esav',hard:'ehard',date:'TESTE DE 22 DE OUTUBRO 2026',name:'1.º Teste · Unit 1 Family Life'},
+ hi:{keys:['h1','h2','h3','h4','h5'],all:'hall',err:'herr',subj:'hihome',subjName:'História',title:'Ficha',kind:'ficha',when:'2026-10-29',sav:'hsav',hard:'hhard',date:'FICHA DE 29 DE OUTUBRO 2026',name:'Civilização Egípcia e Hebreus'},
+ fq:{keys:['f13','f14','f16','f17','f18'],all:'fall',err:'ferr',subj:'fqhome',subjName:'Físico-Química',kind:'teste',when:'2026-10-27',sav:'fsav',hard:'fhard',title:'1.º Teste',date:'TESTE DE 27 DE OUTUBRO 2026',name:'1.º Teste · Materiais (unidades 13, 14, 16, 17 e 18)'}};
 let cur='en';const T_=()=>TESTS[cur];
 const inCur=i=>QS[i]&&T_().keys.includes(QS[i][0]);
 const size = () => [10,20,30].includes(S.size) ? S.size : 20;
@@ -1054,6 +1056,7 @@ function stratified(ids,n){ // spread across subtopics
   return shuffle(out)}
 function build(t){
   if(t.startsWith('sub:')){const key=t.slice(4);return fresh(QS.map((q,i)=>(q[0]+':'+q[1])===key?i:-1).filter(i=>i>=0),size())}
+  if(t===T_().hard)return hardList().slice(0,size());
   if(t===T_().sav)return shuffle((S.saved||[]).filter(i=>inCur(i))).slice(0,size());
   if(t===T_().err)return shuffle(S.wrong.filter(i=>inCur(i))).slice(0,size());
   if(t===T_().all){const ks=T_().keys,n=size();let o=[];ks.forEach((k,j)=>{const per=Math.floor(n/ks.length)+(j<n%ks.length?1:0);o=o.concat(fresh(QS.map((q,i)=>q[0]===k?i:-1).filter(i=>i>=0),per))});return shuffle(o)}
@@ -1068,12 +1071,14 @@ function fmtT(s){s=Math.round(s/60);if(s<1)return'menos de 1 min';const h=Math.f
 let lastAct=0;function tick(){const now=Date.now();if((view.name==='quiz'||view.name==='psolve')&&lastAct){const d=Math.min((now-lastAct)/1000,120);S.time=S.time||{};S.time[cur]=(S.time[cur]||0)+d;const day=new Date().toISOString().slice(0,10);S.tday=S.tday||{};if(S.tday.d!==day)S.tday={d:day};S.tday[cur]=(S.tday[cur]||0)+d}lastAct=now}
 function toggleSave(){const id=quiz.ids[quiz.i];S.saved=S.saved||[];const k=S.saved.indexOf(id);if(k>=0)S.saved.splice(k,1);else S.saved.push(id);save();render()}
 function prep(){const ks=T_().keys;let tot=0,weak=null;ks.forEach(k=>{const cv=cover(k).p/100;const r=(S.rec||{})[k]||[];const acc=r.length?r.reduce((a,b)=>a+b,0)/r.length:0;const conf=Math.min(r.length/10,1);const sc=0.4*cv+0.6*acc*conf;tot+=sc;if(!weak||sc<weak[1])weak=[k,sc]});return {p:Math.round(tot/ks.length*100),weak:weak&&TOPICS[weak[0]].n}}
+function recQ(id,good){S.qs=S.qs||{};const r=S.qs[id]=S.qs[id]||[0,0,0];r[0]++;if(good){r[2]++}else{r[1]++;r[2]=0}}
+function hardList(){const Q=S.qs||{};return Object.keys(Q).map(Number).filter(i=>inCur(i)&&Q[i][1]>=1&&Q[i][2]<3&&(Q[i][1]>=2||Q[i][1]/Q[i][0]>=0.5)).sort((a,b)=>Q[b][1]/Q[b][0]-Q[a][1]/Q[a][0]||Q[b][1]-Q[a][1])}
 function recAdd(k,good){S.rec=S.rec||{};const r=S.rec[k]=S.rec[k]||[];r.push(good?1:0);if(r.length>20)r.shift()}
 function start(t){const ids=build(t);if(!ids.length)return;
   quiz={t,ids,i:0,ok:0,answered:null,opts:null,say:pick(cur!=='en'?THINKF:THINK)};view={name:'quiz'};lastAct=Date.now();render();window.scrollTo(0,0)}
 function answer(choice){
   if(quiz.answered!==null)return;const id=quiz.ids[quiz.i],q=QS[id],good=choice===q[3];
-  tick();recAdd(q[0],good);quiz.answered=choice;S.seen=S.seen||{};S.seen[id]=1;const k=q[0]+':'+q[1];const st=S.sub[k]||[0,0];st[1]++;if(good)st[0]++;S.sub[k]=st;
+  tick();recAdd(q[0],good);recQ(id,good);quiz.answered=choice;S.seen=S.seen||{};S.seen[id]=1;const k=q[0]+':'+q[1];const st=S.sub[k]||[0,0];st[1]++;if(good)st[0]++;S.sub[k]=st;
   if(good){quiz.ok++;S.xp+=10;if(quiz.t===T_().err)S.wrong=S.wrong.filter(x=>x!==id)}
   else if(!S.wrong.includes(id))S.wrong.push(id);
   quiz.msg=good?pick(YES):pick(NO);save();render();
@@ -1081,8 +1086,18 @@ function answer(choice){
 function next(){tick();quiz.i++;quiz.answered=null;quiz.opts=null;quiz.say=pick(cur!=='en'?THINKF:THINK);
   if(quiz.i>=quiz.ids.length){const n=quiz.ids.length;if(quiz.ok===n&&n>=10)S.xp+=50;
     S.history.push({d:Date.now(),t:quiz.t,c:quiz.ok,n});if(S.history.length>400)S.history=S.history.slice(-400);save();view={name:'result'}}
-  render();window.scrollTo(0,0)}
+  render();window.scrollTo(0,0);if(view.name==='result')celebrate(Math.round(quiz.ok/quiz.ids.length*100))}
 
+
+function celebrate(p){if(p<80)return;const red=matchMedia('(prefers-reduced-motion: reduce)').matches;const dur=red?1800:5000;
+ const cv=document.createElement('canvas');cv.className='party';document.body.appendChild(cv);const x=cv.getContext('2d');let W,H;const rs=()=>{W=cv.width=innerWidth*devicePixelRatio;H=cv.height=innerHeight*devicePixelRatio};rs();
+ const C=['#6a3fd1','#d6336c','#f2b705','#1f9452','#2563c9','#e8730c','#ff7ab6'];const P=[];const d=devicePixelRatio;const t0=performance.now();let stop=false;cv.onclick=()=>stop=true;
+ const conf=()=>{for(let i=0;i<6;i++)P.push({x:Math.random()*W,y:-20*d,vx:(Math.random()-.5)*2*d,vy:(2+Math.random()*3)*d,s:(6+Math.random()*6)*d,r:Math.random()*6,vr:(Math.random()-.5)*.3,c:C[Math.random()*C.length|0],k:'c',life:1e9})};
+ const boom=()=>{const cx=W*(.15+Math.random()*.7),cy=H*(.15+Math.random()*.4),c=C[Math.random()*C.length|0];for(let i=0;i<60;i++){const a=Math.PI*2*i/60,v=(2+Math.random()*4)*d;P.push({x:cx,y:cy,vx:Math.cos(a)*v,vy:Math.sin(a)*v,s:3*d,c,k:'f',life:60+Math.random()*30})}};
+ let n=0;(function f(now){const el=now-t0;x.clearRect(0,0,W,H);if(!stop&&el<dur-1200){if(p===100){if(n++%22===0)boom()}else conf()}
+  for(let i=P.length-1;i>=0;i--){const q=P[i];q.x+=q.vx;q.y+=q.vy;q.life--;if(q.k==='c'){q.r+=q.vr;q.vy+=.03*d;x.save();x.translate(q.x,q.y);x.rotate(q.r);x.fillStyle=q.c;x.fillRect(-q.s/2,-q.s/4,q.s,q.s/2);x.restore();if(q.y>H+20)P.splice(i,1)}
+   else{q.vy+=.05*d;q.vx*=.98;q.vy*=.98;x.globalAlpha=Math.max(q.life/90,0);x.fillStyle=q.c;x.beginPath();x.arc(q.x,q.y,q.s,0,7);x.fill();x.globalAlpha=1;if(q.life<=0)P.splice(i,1)}}
+  if((el<dur||P.length)&&!stop&&el<dur+1500)requestAnimationFrame(f);else cv.remove()})(t0)}
 function header(back,title){return `<div class="top">${back?`<button class="back" aria-label="Voltar" onclick="go('${back}')">‹</button>`:''}<h2>${title}</h2><div class="chipxp"><b>★</b> ${S.xp} pts</div></div>`}
 function setSize(n){S.size=n;save();render()}
 function go(n){view={name:n};render();window.scrollTo(0,0)}
@@ -1221,12 +1236,12 @@ function test(){
  <button class="topic" style="--c:var(--all)" onclick="start('${T_().all}')"><div><div class="n">★ Mistura tudo</div><div class="s">Um pouco de cada matéria, como no teste</div></div><span class="best">${sa?`Recorde ${sa.best}%<br><small>Média ${sa.avg}%</small>`:'Novo!'}</span></button></div>
  ${cur==='fq'?`<button class="topic" style="--c:#e8730c;border-left-width:8px" onclick="go('plist')"><div style="flex:1;min-width:0"><div class="n">🧮 Problemas: massa, volume e concentração</div><div class="s">20 problemas resolvidos passo a passo</div><div class="cov"><div class="cbar"><i style="width:${PROBS.filter((p,i)=>(S.prob||{})[i]&&S.prob[i].ok).length/20*100}%"></i></div><span>Feitos ${PROBS.filter((p,i)=>(S.prob||{})[i]&&S.prob[i].ok).length}/20</span></div></div></button>`:''}
  <div class="pill2"><button onclick="${nw?`start('${T_().err}')`:''}" ${nw?'':'disabled style="opacity:.5"'}>Os meus erros<span>${nw} para rever</span></button>
- <button onclick="${ns?`start('${T_().sav}')`:''}" ${ns?'':'disabled style="opacity:.5"'}>🔖 Guardadas<span>${ns} para rever</span></button></div><div class="pill2"><button onclick="go('prog')">A minha evolução<span>${S.history.filter(x=>[...T_().keys,T_().all,T_().err].includes(x.t)).length} rondas feitas</span></button></div>`}
+ <button onclick="${ns?`start('${T_().sav}')`:''}" ${ns?'':'disabled style="opacity:.5"'}>🔖 Guardadas<span>${ns} para rever</span></button></div><div class="pill2"><button onclick="${hardList().length?`start('${T_().hard}')`:''}" ${hardList().length?'':'disabled style="opacity:.5"'}>🔥 Difíceis<span>${hardList().length?hardList().length+' que mais falhas':'Ainda nenhuma'}</span></button></div><div class="pill2"><button onclick="go('prog')">A minha evolução<span>${S.history.filter(x=>[...T_().keys,T_().all,T_().err].includes(x.t)).length} rondas feitas</span></button></div>`}
 
 function fmt(s){s=esc(s);const m=s.match(/^([a-zA-Z]) = ([a-zA-Z]+) \/ ([a-zA-Z]+)$/);if(m)return `${m[1]} = <span class="frac"><span>${m[2]}</span><span>${m[3]}</span></span>`;return s}
 function toggleSel(j){if(quiz.answered!==null)return;quiz.sel=quiz.sel||[];const k=quiz.sel.indexOf(j);if(k>=0)quiz.sel.splice(k,1);else quiz.sel.push(j);render()}
 function confirmMulti(){const q=QS[quiz.ids[quiz.i]];const chosen=(quiz.sel||[]).map(j=>quiz.opts[j]);if(!chosen.length)return;
- const good=chosen.length===q[3].length&&chosen.every(c=>q[3].includes(c));tick();recAdd(q[0],good);quiz.answered=good?'__ok':'__no';const id=quiz.ids[quiz.i];S.seen=S.seen||{};S.seen[id]=1;
+ const good=chosen.length===q[3].length&&chosen.every(c=>q[3].includes(c));const id=quiz.ids[quiz.i];tick();recAdd(q[0],good);recQ(id,good);quiz.answered=good?'__ok':'__no';S.seen=S.seen||{};S.seen[id]=1;
  const k=q[0]+':'+q[1];const st=S.sub[k]||[0,0];st[1]++;if(good)st[0]++;S.sub[k]=st;
  if(good){quiz.ok++;S.xp+=10;if(quiz.t===T_().err)S.wrong=S.wrong.filter(x=>x!==id)}else if(!S.wrong.includes(id))S.wrong.push(id);
  quiz.msg=good?pick(YES):pick(NO);save();render();setTimeout(()=>{const f=$('#fb');if(f)f.scrollIntoView({behavior:'smooth',block:'nearest'})},50)}
