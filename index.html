@@ -1073,7 +1073,7 @@ function build(t){
 
 function daysTo(d){const t=new Date();t.setHours(0,0,0,0);const x=new Date(d+'T00:00:00');return Math.round((x-t)/864e5)}
 function cdText(T){const n=daysTo(T.when);const w=T.kind==='ficha'?'a ficha':'o teste';if(n<0)return null;if(n===0)return `É hoje ${w} de ${T.subjName}! Boa sorte! 🍀`;if(n===1)return `${w[0].toUpperCase()+w.slice(1)} de ${T.subjName} é já amanhã! 💪`;return `Faltam ${n} dias para ${w} de ${T.subjName}`}
-function shortCd(k){const T=TESTS[k];const n=daysTo(T.when);const w=T.kind==='ficha'?'Ficha':'Teste';if(n<0)return T.kind==='ficha'?'1 ficha para treinar':'1 teste para treinar';if(n===0)return `<b class="sc hot">${w} hoje 🍀</b>`;if(n===1)return `<b class="sc hot">${w} amanhã!</b>`;return `<b class="sc">${w} em ${n} dias</b>`}
+function shortCd(k){const T=TESTS[k];const n=daysTo(T.when);const w=T.kind==='ficha'?'Ficha':'Teste';if(n<0)return '';if(n===0)return `<b class="sc hot">${w} hoje 🍀</b>`;if(n===1)return `<b class="sc hot">${w} amanhã!</b>`;return `<b class="sc">${w} em ${n} dias</b>`}
 function countdownAll(){const L=Object.values(TESTS).filter(T=>daysTo(T.when)>=0).sort((a,b)=>daysTo(a.when)-daysTo(b.when));if(!L.length)return'';return `<div class="cdbox">${L.map(T=>`<div class="cd ${daysTo(T.when)<=1?'hot':''}"><b>${daysTo(T.when)===0?'🍀':daysTo(T.when)}</b><span>${cdText(T)}</span></div>`).join('')}</div>`}
 function fmtT(s){s=Math.round(s/60);if(s<1)return'menos de 1 min';const h=Math.floor(s/60),m=s%60;return h?`${h} h ${m} min`:`${m} min`}
 let lastAct=0;function tick(){const now=Date.now();if((view.name==='quiz'||view.name==='psolve')&&lastAct){const d=Math.min((now-lastAct)/1000,120);S.time=S.time||{};S.time[cur]=(S.time[cur]||0)+d;const day=new Date().toISOString().slice(0,10);S.tday=S.tday||{};if(S.tday.d!==day)S.tday={d:day};S.tday[cur]=(S.tday[cur]||0)+d}lastAct=now}
@@ -1240,14 +1240,14 @@ async function dress(){S.acc=S.acc||[];S.wear=S.wear||{};
   IMG[pose]=cv.toDataURL('image/png')}
  render()}
 function winAcc(p,n){const out={acc:[],cor:null};if(n<10||p<80)return out;S.acc=S.acc||[];S.cores=S.cores||[];
+ if(p===100){let pool=CORES.filter(c=>!S.cores.includes(c[0])&&c[2]!==null);if(!pool.length)pool=CORES.filter(c=>!S.cores.includes(c[0]));if(pool.length){out.cor=pick(pool)[0];S.cores.push(out.cor);return out}}
  const free=shuffle(Object.keys(ACC).filter(k=>!S.acc.includes(k)));out.acc=free.slice(0,1);S.acc.push(...out.acc);
- if(p===100){let pool=CORES.filter(c=>!S.cores.includes(c[0])&&c[2]!==null);if(!pool.length)pool=CORES.filter(c=>!S.cores.includes(c[0]));if(pool.length){out.cor=pick(pool)[0];S.cores.push(out.cor)}}
  return out}
 function setCor(k){S.cor=k;save();dress()}
 function wear(k){S.wear=S.wear||{};const z=zoneOf(k);S.wear[z]=S.wear[z]===k?null:k;save();dress()}
 function roupeiro(){S.acc=S.acc||[];if(CORES.some(c=>!_thumbs[c[0]]))setTimeout(corThumbs,0);S.wear=S.wear||{};const tot=Object.keys(ACC).length;
  return header('home','O meu roupeiro')+`<div class="closet-prev pop"><img src="${IMG.think}" alt=""></div>
- <p class="muted" style="text-align:center">Ronda com 80% ou mais: 1 acessório novo · Ronda com 100%: também uma cor nova</p>
+ <p class="muted" style="text-align:center">Ronda com 80% ou mais: 1 acessório novo · Ronda com 100%: 1 cor nova</p>
  <h3 class="closet-h">Cor do pelo <small class="muted">${(S.cores||[]).length+1}/${CORES.length+1}</small></h3><div class="closet">
  <button class="cl ${!S.cor?'on':''}" onclick="setCor(null)"><img src="${IMG0.think}" alt="Original"></button>
  ${CORES.map(c=>(S.cores||[]).includes(c[0])?`<button class="cl ${S.cor===c[0]?'on':''}" onclick="setCor('${c[0]}')" title="${c[1]}">${_thumbs[c[0]]?`<img src="${_thumbs[c[0]]}" alt="${c[1]}">`:'…'}</button>`:`<div class="cl lock">?</div>`).join('')}</div>
