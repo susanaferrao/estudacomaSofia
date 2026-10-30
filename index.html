@@ -49,7 +49,9 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .subj{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:16px;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:110px}
 .subj .ic{font-family:var(--display);font-weight:700;font-size:26px;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#fff}
-.subj.on{border-color:var(--accent);box-shadow:0 4px 0 var(--accent)}
+.subj{--sc:var(--accent);border:2px solid color-mix(in srgb,var(--sc) 55%,#fff);background:linear-gradient(135deg,color-mix(in srgb,var(--sc) 22%,#fff),color-mix(in srgb,var(--sc) 6%,#fff))}
+.subj.on{border-color:var(--sc);box-shadow:0 4px 0 color-mix(in srgb,var(--sc) 75%,#000)}
+.subj.on h3{color:color-mix(in srgb,var(--sc) 70%,#000)}
 .subj.off{opacity:.55}
 .tag{font-size:12px;font-weight:800;color:var(--muted)}
 .testcard{background:var(--accent);color:#fff;border-radius:22px;padding:20px;text-align:left;display:flex;flex-direction:column;gap:6px;box-shadow:0 5px 0 #4a2a99}
@@ -153,6 +155,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .cl img{max-width:100%;max-height:100%}.cl.on{border-color:var(--accent);background:var(--accent-soft)}
 .cl.lock{background:#f1eef5;color:#b4abc4;font-size:22px;font-weight:700;cursor:default}
 .won{margin:12px 0;padding:14px;border-radius:14px;background:var(--accent-soft);text-align:center}.won div{display:flex;justify-content:center;gap:10px;margin:10px 0}.won img{height:60px}
+.hero2{flex-direction:column;align-items:center;text-align:center}.hero2>img{width:auto!important;height:auto!important;max-width:88%!important;max-height:300px!important;margin:0 auto}.hero2 .txt{width:100%;text-align:left}.lvrow{display:flex;align-items:center;gap:4px 8px;flex-wrap:wrap;margin-bottom:6px}.lvrow .level{margin:0}.lvrow .tag{font-size:10.5px}.lvrow .level{font-size:10.5px;padding:3px 8px}.hero2 .level{display:inline-block}
 </style>
 
 <div class="app" id="app"></div>
@@ -1284,23 +1287,22 @@ function roupeiro(){S.acc=S.acc||[];if(CORES.some(c=>!_thumbs[c[0]]))setTimeout(
   :`<div class="cl lock">?</div>`).join('')}</div>`).join('')}`}
 
 function home(){const L=level();
- return `<div class="hero pop"><img src="${IMG.think}" alt=""><div class="txt"><h1>Olá!</h1><p class="muted">Bora treinar? Escolhe a disciplina.</p>
- <span class="level">Nível ${L.i} · ${L.n}</span><div class="xpbar"><i style="width:${L.p}%"></i></div><span class="tag">${S.xp} pontos${L.next?` · faltam ${L.need} para ${L.next}`:' · nível máximo!'}</span></div></div>
- <button class="closet-btn" onclick="go('roupeiro')">👗 O meu roupeiro <span>${(S.acc||[]).length}/${Object.keys(ACC).length}</span></button>
+ return `<div class="hero hero2 pop"><img src="${IMG.think}" alt="" onclick="go('roupeiro')" style="cursor:pointer"><div class="txt">
+ <div class="lvrow"><span class="level">Nível ${L.i} · ${L.n}</span><span class="tag">${S.xp} pontos${L.next?` · faltam ${L.need} para ${L.next}`:' · nível máximo!'}</span></div><div class="xpbar"><i style="width:${L.p}%"></i></div></div></div>
  <div class="grid">
-  <button class="subj on" onclick="go('english')"><span class="ic" style="background:var(--accent)">En</span><h3>Inglês</h3><span class="tag">${shortCd('en')}</span></button>
-  <div class="subj off"><span class="ic" style="background:var(--ps)">Ma</span><h3>Matemática</h3><span class="tag">Em breve</span></div>
-  <div class="subj off"><span class="ic" style="background:var(--fam)">Pt</span><h3>Português</h3><span class="tag">Em breve</span></div>
-  <div class="subj off"><span class="ic" style="background:var(--adv)">Ci</span><h3>Ciências</h3><span class="tag">Em breve</span></div>
-  <button class="subj on" onclick="go('gehome')"><span class="ic" style="background:#0f8a8a">Ge</span><h3>Geografia</h3><span class="tag">${shortCd('ge')}</span></button>
-  <button class="subj on" onclick="go('hihome')"><span class="ic" style="background:#a0522d">Hi</span><h3>História</h3><span class="tag">${shortCd('hi')}</span></button>
-  <button class="subj on" onclick="go('fqhome')"><span class="ic" style="background:var(--pc)">FQ</span><h3>Físico-Química</h3><span class="tag">${shortCd('fq')}</span></button>
-  <div class="subj off"><span class="ic" style="background:var(--mix)">Es</span><h3>Espanhol</h3><span class="tag">Em breve</span></div>
+  <button class="subj on" onclick="go('english')" style="--sc:var(--accent)"><span class="ic" style="background:var(--accent)">En</span><h3>Inglês</h3><span class="tag">${shortCd('en')}</span></button>
+  <div class="subj off" style="--sc:var(--ps)"><span class="ic" style="background:var(--ps)">Ma</span><h3>Matemática</h3><span class="tag">Em breve</span></div>
+  <div class="subj off" style="--sc:var(--fam)"><span class="ic" style="background:var(--fam)">Pt</span><h3>Português</h3><span class="tag">Em breve</span></div>
+  <div class="subj off" style="--sc:var(--adv)"><span class="ic" style="background:var(--adv)">Ci</span><h3>Ciências</h3><span class="tag">Em breve</span></div>
+  <button class="subj on" onclick="go('gehome')" style="--sc:#0f8a8a"><span class="ic" style="background:#0f8a8a">Ge</span><h3>Geografia</h3><span class="tag">${shortCd('ge')}</span></button>
+  <button class="subj on" onclick="go('hihome')" style="--sc:#a0522d"><span class="ic" style="background:#a0522d">Hi</span><h3>História</h3><span class="tag">${shortCd('hi')}</span></button>
+  <button class="subj on" onclick="go('fqhome')" style="--sc:var(--pc)"><span class="ic" style="background:var(--pc)">FQ</span><h3>Físico-Química</h3><span class="tag">${shortCd('fq')}</span></button>
+  <div class="subj off" style="--sc:var(--mix)"><span class="ic" style="background:var(--mix)">Es</span><h3>Espanhol</h3><span class="tag">Em breve</span></div>
  </div>${syncMsg?`<p class="sync">${syncMsg}</p>`:''}`}
 
 function english(){
  return `${header('home','Inglês')}
- <button class="testcard pop" onclick="openTest('en')"><span class="tag" style="color:#fff;opacity:.85">TESTE DE OUTUBRO 2026</span><span class="t">1.º Teste · Unit 1 Family Life</span><span>${QS.filter(q=>TESTS.en.keys.includes(q[0])).length} perguntas para treinar · rondas de 10, 20 ou 30</span></button>${cdText(TESTS.en)?`<div class="cd ${daysTo(TESTS.en.when)<=1?'hot':''}"><b>${daysTo(TESTS.en.when)===0?'🍀':daysTo(TESTS.en.when)}</b><span>${cdText(TESTS.en)}</span></div>`:''}`}
+ <button class="testcard pop" onclick="openTest('en')"><span class="tag" style="color:#fff;opacity:.85">TESTE DE OUTUBRO 2026</span><span class="t">1.º Teste · Unit 1 Family Life</span><span>${QS.filter(q=>TESTS.en.keys.includes(q[0])).length} perguntas para treinar · rondas de 10, 20 ou 30</span></button>`}
 
 // ===== Problemas de escala (Geografia) =====
 const SP=[
@@ -1423,13 +1425,13 @@ function locked(){const t=S.lock,n=t.startsWith('sub:')?SUBN[t.slice(4)]:(TOPICS
  return `${header('test','Pausa nesta matéria')}<div class="res pop"><img src="${IMG.happy}" alt=""><h3>Já dominas "${n}"! 🏆</h3><p class="muted">Tiveste 100% três vezes seguidas. Agora treina outra matéria: depois de fazeres uma ronda noutra, esta volta a ficar disponível.</p></div><button class="big" onclick="go('test')">Escolher outra matéria</button>`}
 function gehome(){
  return `${header('home','Geografia')}
- <button class="testcard pop" style="background:#0f8a8a;box-shadow:0 5px 0 #08605f" onclick="openTest('ge')"><span class="tag" style="color:#fff;opacity:.85">${TESTS.ge.date}</span><span class="t">${TESTS.ge.name}</span><span>${QS.filter(q=>TESTS.ge.keys.includes(q[0])).length} perguntas para treinar · rondas de 10, 20 ou 30</span></button>${cdText(TESTS.ge)?`<div class="cd ${daysTo(TESTS.ge.when)<=1?'hot':''}"><b>${daysTo(TESTS.ge.when)===0?'🍀':daysTo(TESTS.ge.when)}</b><span>${cdText(TESTS.ge)}</span></div>`:''}`}
+ <button class="testcard pop" style="background:#0f8a8a;box-shadow:0 5px 0 #08605f" onclick="openTest('ge')"><span class="tag" style="color:#fff;opacity:.85">${TESTS.ge.date}</span><span class="t">${TESTS.ge.name}</span><span>${QS.filter(q=>TESTS.ge.keys.includes(q[0])).length} perguntas para treinar · rondas de 10, 20 ou 30</span></button>`}
 function hihome(){
  return `${header('home','História')}
- <button class="testcard pop" style="background:#a0522d;box-shadow:0 5px 0 #6e3818" onclick="openTest('hi')"><span class="tag" style="color:#fff;opacity:.85">${TESTS.hi.date}</span><span class="t">${TESTS.hi.name}</span><span>${QS.filter(q=>TESTS.hi.keys.includes(q[0])).length} perguntas para treinar · rondas de 10, 20 ou 30</span></button>${cdText(TESTS.hi)?`<div class="cd ${daysTo(TESTS.hi.when)<=1?'hot':''}"><b>${daysTo(TESTS.hi.when)===0?'🍀':daysTo(TESTS.hi.when)}</b><span>${cdText(TESTS.hi)}</span></div>`:''}`}
+ <button class="testcard pop" style="background:#a0522d;box-shadow:0 5px 0 #6e3818" onclick="openTest('hi')"><span class="tag" style="color:#fff;opacity:.85">${TESTS.hi.date}</span><span class="t">${TESTS.hi.name}</span><span>${QS.filter(q=>TESTS.hi.keys.includes(q[0])).length} perguntas para treinar · rondas de 10, 20 ou 30</span></button>`}
 function fqhome(){
  return `${header('home','Físico-Química')}
- <button class="testcard pop" style="background:#e8730c;box-shadow:0 5px 0 #a8500a" onclick="openTest('fq')"><span class="tag" style="color:#fff;opacity:.85">${TESTS.fq.date}</span><span class="t">${TESTS.fq.name}</span><span>${QS.filter(q=>TESTS.fq.keys.includes(q[0])).length} perguntas para treinar · rondas de 10, 20 ou 30</span></button>${cdText(TESTS.fq)?`<div class="cd ${daysTo(TESTS.fq.when)<=1?'hot':''}"><b>${daysTo(TESTS.fq.when)===0?'🍀':daysTo(TESTS.fq.when)}</b><span>${cdText(TESTS.fq)}</span></div>`:''}`}
+ <button class="testcard pop" style="background:#e8730c;box-shadow:0 5px 0 #a8500a" onclick="openTest('fq')"><span class="tag" style="color:#fff;opacity:.85">${TESTS.fq.date}</span><span class="t">${TESTS.fq.name}</span><span>${QS.filter(q=>TESTS.fq.keys.includes(q[0])).length} perguntas para treinar · rondas de 10, 20 ou 30</span></button>`}
 
 function test(){
  const tl=T_().keys.map((k,i)=>{const T=TOPICS[k],s=stats(k),cv=cover(k);
@@ -1439,7 +1441,6 @@ function test(){
  const sa=stats(T_().all);const nw=S.wrong.filter(i=>inCur(i)).length;
  const P=prep();const ns=(S.saved||[]).filter(i=>inCur(i)).length;const cd=cdText(T_());const tm=(S.time||{})[cur]||0;const td=(S.tday&&S.tday.d===new Date().toISOString().slice(0,10))?(S.tday[cur]||0):0;
  return `${header(T_().subj,T_().subjName+' · '+T_().title)}
- ${cd?`<div class="cd ${daysTo(T_().when)<=1?'hot':''}"><b>${daysTo(T_().when)===0?'🍀':daysTo(T_().when)}</b><span>${cd}</span></div>`:''}
  <div class="panel prep"><div class="row" style="justify-content:space-between"><h3>Estás preparada?</h3><b class="pp">${P.p}%</b></div><div class="xpbar"><i style="width:${P.p}%"></i></div>
  <p class="muted" style="font-size:13px">${P.p>=85?'Estás muito bem preparada! Continua a rever os erros.':P.p>=60?'Vais no bom caminho. Treina mais:':P.p>0?'Ainda há muito para treinar. Começa por:':'Faz a primeira ronda para veres como estás.'} ${P.p>0&&P.p<85&&P.weak?'<b>'+P.weak+'</b>':''}</p>
  <p class="muted" style="font-size:12px">Conta as perguntas que já viste e os acertos nas últimas respostas de cada matéria.</p>
