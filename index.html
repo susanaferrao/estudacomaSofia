@@ -1142,7 +1142,7 @@ function answer(choice){
   setTimeout(()=>{const f=$('#fb');if(f)f.scrollIntoView({behavior:'smooth',block:'nearest'})},50)}
 function next(){tick();quiz.i++;quiz.answered=null;quiz.opts=null;quiz.say=pick(cur!=='en'?THINKF:THINK);
   if(quiz.i>=quiz.ids.length){const n=quiz.ids.length;if(quiz.ok===n&&n>=10)S.xp+=50;
-    S.history.push({d:Date.now(),t:quiz.t,c:quiz.ok,n});{const L3=S.history.slice(-3);if(S.lock&&S.lock!==quiz.t)S.lock=null;if(L3.length===3&&L3.every(x=>x.t===quiz.t&&x.n>=10&&x.c===x.n))S.lock=quiz.t;}quiz.won=winAcc(Math.round(quiz.ok/n*100),n);if(S.history.length>400)S.history=S.history.slice(-400);save();view={name:'result'}}
+    S.history.push({d:Date.now(),t:quiz.t,c:quiz.ok,n});{const L3=S.history.slice(-3);if(S.lock&&S.lock!==quiz.t)S.lock=null;if(L3.length===3&&L3.every(x=>x.t===quiz.t&&x.n>=10&&x.c===x.n))S.lock=quiz.t;}quiz.won=winAcc(Math.round(quiz.ok/n*100),n);if(S.history.length>3000)S.history=S.history.slice(-3000);save();view={name:'result'}}
   render();window.scrollTo(0,0);if(view.name==='result')celebrate(Math.round(quiz.ok/quiz.ids.length*100),quiz.won&&isSp(quiz.won.cor))}
 
 
@@ -1491,7 +1491,7 @@ function test(){
  <div class="panel" style="gap:6px"><div class="trow"><span class="nm">Perguntas já vistas</span><span class="v">${tot[0]}/${tot[1]} · ${tp}%</span><div class="tbar"><i style="width:${tp}%;background:var(--accent)"></i></div></div><p class="muted" style="font-size:13px">A app mostra primeiro as perguntas que ainda não viste. Só repete quando já tiveres visto todas.</p></div>
  <div class="list">${tl}
  <button class="topic" style="--c:var(--all)" onclick="start('${T_().all}')"><div><div class="n">★ Mistura tudo</div><div class="s">Um pouco de cada matéria, como no teste</div></div><span class="best">${sa?`Recorde ${sa.best}%<br><small>Média ${sa.avg}%</small>`:'Novo!'}</span></button></div>
- ${cur==='ge'?`<button class="topic" style="--c:#0f8a8a;border-left-width:8px" onclick="mapStart()"><div style="flex:1;min-width:0"><div class="n">🗺️ Mapa: oceanos e continentes</div><div class="s">Toca no sítio certo do planisfério</div></div><span class="best">Novo!</span></button>`:''}
+ ${cur==='ge'?`<button class="topic" style="--c:#0f8a8a;border-left-width:8px" onclick="mapStart()"><div style="flex:1;min-width:0"><div class="n">🗺️ Mapa: oceanos e continentes</div><div class="s">Toca no sítio certo do planisfério</div></div><span class="best">${(s=>s?`Recorde ${s.best}%<br><small>Média ${s.avg}%</small>`:'Novo!')(stats('gmap'))}</span></button>`:''}
  ${cur==='ge'?`<button class="topic" style="--c:#0f8a8a;border-left-width:8px" onclick="go('splist')"><div style="flex:1;min-width:0"><div class="n">🧮 Problemas de escalas</div><div class="s">${SP.length} problemas resolvidos passo a passo</div></div><span class="best">${SP.filter((x,i)=>(S.sprob||{})[i]&&S.sprob[i].ok).length}/${SP.length}</span></button>`:''}
  ${cur==='fq'?`<button class="topic" style="--c:#e8730c;border-left-width:8px" onclick="go('plist')"><div style="flex:1;min-width:0"><div class="n">🧮 Problemas: massa, volume e concentração</div><div class="s">20 problemas resolvidos passo a passo</div><div class="cov"><div class="cbar"><i style="width:${PROBS.filter((p,i)=>(S.prob||{})[i]&&S.prob[i].ok).length/20*100}%"></i></div><span>Feitos ${PROBS.filter((p,i)=>(S.prob||{})[i]&&S.prob[i].ok).length}/20</span></div></div></button>`:''}
  <div class="pill2"><button onclick="${nw?`start('${T_().err}')`:''}" ${nw?'':'disabled style="opacity:.5"'}>Os meus erros<span>${nw} para rever</span></button>
