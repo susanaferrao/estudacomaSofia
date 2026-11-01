@@ -150,9 +150,9 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .closet-btn{display:flex;justify-content:space-between;align-items:center;width:100%;margin:10px 0 4px;padding:12px 16px;border-radius:14px;border:2px solid var(--accent);background:var(--accent-soft);font:inherit;font-weight:700;color:inherit;cursor:pointer}
 .closet-btn span{font-weight:600;opacity:.75}
 .closet-prev{display:flex;justify-content:center;margin:6px 0}.closet-prev img{max-height:300px;max-width:90%}
-.closet-h{margin:18px 0 8px}.closet{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.cl{aspect-ratio:1;border-radius:12px;border:2px solid #e6e1ee;background:#fff;display:flex;align-items:center;justify-content:center;padding:6px;cursor:pointer}
-.cl img{max-width:100%;max-height:100%}.cl.on{border-color:var(--accent);background:var(--accent-soft)}
+.closet-h{margin:18px 0 8px}.closet{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.cl{position:relative;width:100%;height:0;padding:0 0 100% 0;margin:0;border-radius:12px;border:2px solid #e6e1ee;background:#fff;cursor:pointer;overflow:hidden;box-sizing:border-box;-webkit-appearance:none;appearance:none;font:inherit}
+.cl img{position:absolute;top:6px;left:6px;width:calc(100% - 12px);height:calc(100% - 12px);object-fit:contain}.cl.lock{display:block}.cl.lock::after{content:'?';position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center}.cl.on{border-color:var(--accent);background:var(--accent-soft)}
 .cl.lock{background:#f1eef5;color:#b4abc4;font-size:22px;font-weight:700;cursor:default}
 .won{margin:12px 0;padding:14px;border-radius:14px;background:var(--accent-soft);text-align:center}.won div{display:flex;justify-content:center;gap:10px;margin:10px 0}.won img{height:60px}
 .hero2{flex-direction:column;align-items:center;text-align:center}.hero2>img{width:auto!important;height:auto!important;max-width:88%!important;max-height:300px!important;margin:0 auto}.hero2 .txt{width:100%;text-align:left}.lvrow{display:flex;align-items:center;gap:4px 8px;flex-wrap:wrap;margin-bottom:6px}.lvrow .level{margin:0}.lvrow .tag{font-size:10.5px}.lvrow .level{font-size:10.5px;padding:3px 8px}.hero2 .level{display:inline-block}
@@ -1319,11 +1319,11 @@ function roupeiro(){S.acc=S.acc||[];if(CORES.some(c=>!_thumbs[c[0]]))setTimeout(
  <p class="muted" style="text-align:center">Ronda de 10: 80–99% = 1 acessório · 100% = 1 cor nova ou 1 animal<br>Ronda de 20 ou 30: 80–99% = 1 animal · 100% = 1 cor nova ou 1 animal</p>
  <h3 class="closet-h">Cor do pelo <small class="muted">${(S.cores||[]).length+1}/${CORES.length+1}</small></h3><div class="closet">
  <button class="cl ${!S.cor?'on':''}" onclick="setCor(null)"><img src="${IMG0.think}" alt="Original"></button>
- ${CORES.map(c=>(S.cores||[]).includes(c[0])?`<button class="cl ${S.cor===c[0]?'on':''}" onclick="setCor('${c[0]}')" title="${c[1]}">${_thumbs[c[0]]?`<img src="${_thumbs[c[0]]}" alt="${c[1]}">`:'…'}</button>`:`<div class="cl lock">?</div>`).join('')}</div>
+ ${CORES.map(c=>(S.cores||[]).includes(c[0])?`<button class="cl ${S.cor===c[0]?'on':''}" onclick="setCor('${c[0]}')" title="${c[1]}">${_thumbs[c[0]]?`<img src="${_thumbs[c[0]]}" alt="${c[1]}">`:'…'}</button>`:`<div class="cl lock"></div>`).join('')}</div>
  ${isSp(S.cor)?'<p class="spnote">✨ Estás com um monstro especial: só pode usar animais. Os acessórios voltam quando escolheres outra cor.</p>':''}<p class="muted">${S.acc.length} de ${tot} animais e acessórios · toca para usar, toca outra vez para tirar</p>
  ${ZONES.map(([z,n,p])=>`<h3 class="closet-h">${n}</h3><div class="closet">${Object.keys(ACC).filter(k=>p.some(q=>k.startsWith(q))).map(k=>S.acc.includes(k)
   ?`<button class="cl ${S.wear[z]===k?'on':''}" onclick="wear('${k}')"><img src="${ACC[k]}" alt=""></button>`
-  :`<div class="cl lock">?</div>`).join('')}</div>`).join('')}`}
+  :`<div class="cl lock"></div>`).join('')}</div>`).join('')}`}
 
 function home(){const L=level();
  return `<div class="hero hero2 pop"><img src="${IMG.think}" alt="" onclick="go('roupeiro')" style="cursor:pointer"><div class="txt">
