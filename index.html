@@ -1580,14 +1580,14 @@ function cdhome(){const st=S.ord||{};const done=ORD.filter((o,i)=>st[i]).length;
  <button class="topic" style="--c:#e8730c" onclick="go('ordl')"><div style="flex:1;min-width:0"><div class="n">🔀 Ordenar acontecimentos</div><div class="s">Arrasta para pôr pela ordem certa</div></div><span class="best">${done}/${ORD.length}</span></button>
  ${TESTS.ptc.keys.map(k=>{const T=TOPICS[k],n=QS.filter(q=>q[0]===k).length,cv=cover(k);return `<button class="topic" style="--c:${T.c}" onclick="cur='ptc';start('${k}')"><div style="flex:1;min-width:0"><div class="n">${T.n}</div><div class="s">${n} perguntas · vistas ${cv.p}%</div></div></button>`}).join('')}
  <button class="topic" style="--c:var(--all)" onclick="cur='ptc';start('cpall')"><div><div class="n">★ Mistura tudo</div><div class="s">Toda a obra</div></div></button></div>`}
-function ordl(){const st=S.ord||{};return `${header('cdhome','Ordenar acontecimentos')}<div class="list">${ORD.map((o,i)=>`<button class="topic" style="--c:${st[i]?'var(--good,#1f9452)':'#e8730c'}" onclick="ordOpen(${i})"><div style="flex:1;min-width:0"><div class="n">${o.t}</div><div class="s">${o.e.length} acontecimentos</div></div><span class="best">${st[i]?'✅':'Novo!'}</span></button>`).join('')}</div>`}
+function ordl(){const st=S.ord||{};return `${header('cdhome','Ordenar acontecimentos')}<div class="list">${ORD.map((o,i)=>`<button class="topic" style="--c:${st[i]?'var(--good,#1f9452)':'#e8730c'}" onclick="ordOpen(${i})"><div style="flex:1;min-width:0"><div class="n">${o.t}</div><div class="s">5 acontecimentos de cada vez · muda sempre</div></div><span class="best">${st[i]?'✅':'Novo!'}</span></button>`).join('')}</div>`}
 let OQ=null;
-function ordOpen(i){const n=ORD[i].e.length;let a;do{a=[...Array(n).keys()].sort(()=>Math.random()-.5)}while(a.every((x,j)=>x===j));OQ={i,a,chk:false};go('ordq')}
-function ordq(){const o=ORD[OQ.i];const ok=OQ.chk&&OQ.a.every((x,j)=>x===j);
+function ordOpen(i){const all=ORD[i].e.length;const pick=[...Array(all).keys()].sort(()=>Math.random()-.5).slice(0,Math.min(5,all)).sort((x,y)=>x-y);let a;do{a=[...pick].sort(()=>Math.random()-.5)}while(a.every((x,j)=>x===pick[j]));OQ={i,a,pick,chk:false};go('ordq')}
+function ordq(){const o=ORD[OQ.i];const ok=OQ.chk&&OQ.a.every((x,j)=>x===OQ.pick[j]);
  return `${header('ordl',o.t)}<p class="ordhelp">${OQ.chk?(ok?'🎉 Perfeito! Está tudo pela ordem certa.':'Os que estão a vermelho estão no sítio errado. Continua a arrastar!'):'Arrasta (☰) os acontecimentos para os pôr pela ordem em que aparecem na obra.'}</p>
- <div id="ordlist">${OQ.a.map((x,j)=>`<div class="orditem ${OQ.chk?(x===j?'ok':'bad'):''}" data-x="${x}"><span class="ordn">${j+1}</span><span class="ordt">${o.e[x]}</span><span class="ordh">☰</span></div>`).join('')}</div>
+ <div id="ordlist">${OQ.a.map((x,j)=>`<div class="orditem ${OQ.chk?(x===OQ.pick[j]?'ok':'bad'):''}" data-x="${x}"><span class="ordn">${j+1}</span><span class="ordt">${o.e[x]}</span><span class="ordh">☰</span></div>`).join('')}</div>
  ${ok?`<button class="big" onclick="go('ordl')">Continuar</button>`:`<button class="big" onclick="ordCheck()">Verificar</button>`}`}
-function ordCheck(){OQ.chk=true;if(OQ.a.every((x,j)=>x===j)){S.ord=S.ord||{};if(!S.ord[OQ.i]){S.ord[OQ.i]=1;S.xp+=10}save()}render();ordBind()}
+function ordCheck(){OQ.chk=true;if(OQ.a.every((x,j)=>x===OQ.pick[j])){S.ord=S.ord||{};if(!S.ord[OQ.i]){S.ord[OQ.i]=1;S.xp+=10}save()}render()}
 function ordBind(){const L=document.getElementById('ordlist');if(!L)return;let drag=null,sy=0,ph=null;
  L.querySelectorAll('.orditem').forEach(el=>{el.addEventListener('pointerdown',e=>{drag=el;sy=e.clientY;el.setPointerCapture(e.pointerId);el.classList.add('drag');el.classList.remove('ok','bad');e.preventDefault()});
   el.addEventListener('pointermove',e=>{if(drag!==el)return;const dy=e.clientY-sy;el.style.transform=`translateY(${dy}px)`;
