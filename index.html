@@ -1638,7 +1638,7 @@ function test(){
  <p class="muted" style="font-size:12px">Conta as perguntas que já viste e os acertos nas últimas respostas de cada matéria.</p>
  <p class="tm">⏱ Tempo de estudo: <b>${fmtT(tm)}</b>${td?` · hoje ${fmtT(td)}`:''}</p></div>
  <div class="sizes"><span class="tag">Perguntas por ronda</span><div class="seg3">${[10,20,30].map(n=>`<button class="${size()===n?'on':''}" onclick="setSize(${n})">${n}</button>`).join('')}</div></div>
- <div class="panel" style="gap:6px"><div class="trow"><span class="nm">Perguntas já vistas</span><span class="v">${tot[0]}/${tot[1]} · ${tp}%</span><div class="tbar"><i style="width:${tp}%;background:var(--accent)"></i></div></div><p class="muted" style="font-size:13px">A app mostra primeiro as perguntas que ainda não viste. Só repete quando já tiveres visto todas.</p></div>
+
  <div class="list">${tl}
  <button class="topic" style="--c:var(--all)" onclick="start('${T_().all}')"><div><div class="n">★ Mistura tudo</div><div class="s">Um pouco de cada matéria, como no teste</div></div><span class="best">${sa?`Recorde ${sa.best}%<br><small>Média ${sa.avg}%</small>`:'Novo!'}</span></button></div>
  ${cur==='pt'?`<button class="topic" style="--c:#a0522d" onclick="go('ordl')"><div style="flex:1;min-width:0"><div class="n">O Cavaleiro da Dinamarca: ordenar acontecimentos</div><div class="s">Arrasta para pôr pela ordem certa</div></div><span class="best">${ORD.filter((o,i)=>(S.ord||{})[i]).length}/${ORD.length}</span></button>`:''}
