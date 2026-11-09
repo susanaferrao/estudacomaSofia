@@ -1381,7 +1381,7 @@ function spWin(W){return W&&W.cor&&isSp(W.cor)?`<div class="spwin pop"><b>✨ MO
 function setCor(k){S.cor=k;save();dress()}
 function wear(k){S.wear=S.wear||{};const z=zoneOf(k);S.wear[z]=S.wear[z]===k?null:k;save();dress()}
 function roupeiro(){S.acc=S.acc||[];if(CORES.some(c=>!_thumbs[c[0]]))setTimeout(corThumbs,0);S.wear=S.wear||{};const tot=Object.keys(ACC).length;
- return header('home','O meu roupeiro')+`<div class="closet-prev pop"><img src="${IMG.think}" alt=""></div>
+ return header('home','O meu roupeiro')+`<div class="closet-prev pop" onclick="monTap()" style="touch-action:manipulation;-webkit-user-select:none;user-select:none"><img src="${IMG.think}" alt="" draggable="false"></div>
  <p class="muted" style="text-align:center">Ronda de 10: 80–99% = 1 acessório · 100% = 1 cor nova ou 1 animal<br>Ronda de 20 ou 30: 80–99% = 1 animal · 100% = 1 cor nova ou 1 animal</p>
  <h3 class="closet-h">Cor do pelo <small class="muted">${(S.cores||[]).length+1}/${CORES.length+1}</small></h3><div class="closet">
  <button class="cl ${!S.cor?'on':''}" onclick="setCor(null)"><img src="${IMG0.think}" alt="Original"></button>
@@ -1392,7 +1392,7 @@ function roupeiro(){S.acc=S.acc||[];if(CORES.some(c=>!_thumbs[c[0]]))setTimeout(
   :`<div class="cl lock"></div>`).join('')}</div>`).join('')}`}
 
 function home(){const L=level();
- return `<div class="hero hero2 pop"><img src="${IMG.think}" alt="" onclick="monTap()" style="cursor:pointer"><div class="txt">
+ return `<div class="hero hero2 pop"><img src="${IMG.think}" alt="" onclick="go('roupeiro')" style="cursor:pointer"><div class="txt">
  <div class="lvrow"><span class="level">Nível ${L.i} · ${L.n}</span><span class="tag">${S.xp} pontos${L.next?` · faltam ${L.need} para ${L.next}`:' · nível máximo!'}</span></div><div class="xpbar"><i style="width:${L.p}%"></i></div></div></div>
  <div class="grid">
   <button class="subj on" onclick="go('english')" style="--sc:var(--accent)"><span class="ic" style="background:var(--accent)">En</span><h3>Inglês</h3><span class="tag">${shortCd('en')}</span></button>
@@ -1659,7 +1659,7 @@ function rep(){const opts=[[1,'Hoje'],[2,'Últimos 2 dias'],[3,'Últimos 3 dias'
  <a class="big" style="display:block;text-align:center;text-decoration:none" href="https://wa.me/?text=${encodeURIComponent(tx)}" target="_blank" rel="noopener">Enviar por WhatsApp</a>`}
 const GCODES=["5c5f172d15949c59bb507ba7760d7858464c1e15ed316a16cf74cd6a449acc7e", "66569748dd2da73ab3a81581a603dfbc3edcd88382f9371402136d20a47a6507", "62c01b55f954743038b0a63672812d493dfefce47397f48f8669d2689eebe0df", "14bc20dcbbbf4ee3caa5f288c33239af821838deacb389944f0b108dd24cacbb", "3c87f9637085e9028fcc2329beaa91309f290262480b99e0f839324c633ce9a1", "ea3484d4747a8f4a12270630f7674717e2efff809a61cc221d8dc884b7d4c4ee"];
 let MT=0,MTt=null;
-function monTap(){MT++;clearTimeout(MTt);if(MT>=6){MT=0;CODEMSG='';go('codigo');return}MTt=setTimeout(()=>{const n=MT;MT=0;if(n<6)go('roupeiro')},450)}
+function monTap(){MT++;clearTimeout(MTt);if(MT>=6){MT=0;CODEMSG='';CODEPET=null;go('codigo');return}MTt=setTimeout(()=>{MT=0},1200)}
 let CODEMSG='',CODEPET=null;
 async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
 async function useCode(){const v=(($('#cod')||{}).value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');CODEPET=null;
@@ -1670,7 +1670,7 @@ async function useCode(){const v=(($('#cod')||{}).value||'').trim().toUpperCase(
  S.acc=S.acc||[];const f=shuffle(Object.keys(ACC).filter(x=>x.startsWith('pet')&&!S.acc.includes(x)));
  if(!f.length){CODEMSG='Já tens todos os animais!';render();return}
  S.codes.push(hh);S.acc.push(f[0]);CODEPET=f[0];CODEMSG='';save();render();celebrate&&celebrate(100,false)}
-function codigo(){return `${header('home','Código secreto')}<div class="panel" style="gap:12px">
+function codigo(){return `${header('roupeiro','Código secreto')}<div class="panel" style="gap:12px">
  ${CODEPET?`<div class="won pop"><b>Ganhaste um animal novo!</b><div><img src="${ACC[CODEPET]}" alt=""></div><button class="ghost" onclick="go('roupeiro')">Ver no roupeiro</button></div>`:`
  <p style="margin:0">Escreve o código de 8 caracteres.</p>
  <input id="cod" class="wrin" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXXXXX" style="text-transform:uppercase;letter-spacing:4px;font-size:22px;text-align:center" onkeydown="if(event.key==='Enter')useCode()">
