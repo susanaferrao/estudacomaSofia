@@ -1191,12 +1191,12 @@ function cdText(T){const n=daysTo(T.when);const w=T.kind==='ficha'?'a ficha':'o 
 function shortCd(k){const T=TESTS[k];const n=daysTo(T.when);const w=T.kind==='ficha'?'Ficha':'Teste';if(n<0)return '';if(n===0)return `<b class="sc hot">${w} hoje 🍀</b>`;if(n===1)return `<b class="sc hot">${w} amanhã!</b>`;return `<b class="sc">${w} em ${n} dias</b>`}
 function countdownAll(){const L=Object.values(TESTS).filter(T=>daysTo(T.when)>=0).sort((a,b)=>daysTo(a.when)-daysTo(b.when));if(!L.length)return'';return `<div class="cdbox">${L.map(T=>`<div class="cd ${daysTo(T.when)<=1?'hot':''}"><b>${daysTo(T.when)===0?'🍀':daysTo(T.when)}</b><span>${cdText(T)}</span></div>`).join('')}</div>`}
 function fmtT(s){s=Math.round(s/60);if(s<1)return'menos de 1 min';const h=Math.floor(s/60),m=s%60;return h?`${h} h ${m} min`:`${m} min`}
-let lastAct=0;function tick(){const now=Date.now();if((view.name==='quiz'||view.name==='psolve')&&lastAct){const d=Math.min((now-lastAct)/1000,120);S.time=S.time||{};S.time[cur]=(S.time[cur]||0)+d;const day=new Date().toISOString().slice(0,10);S.tday=S.tday||{};if(S.tday.d!==day)S.tday={d:day};S.tday[cur]=(S.tday[cur]||0)+d}lastAct=now}
+let lastAct=0;function tick(){const now=Date.now();if((view.name==='quiz'||view.name==='psolve')&&lastAct){const d=Math.min((now-lastAct)/1000,120);S.time=S.time||{};S.time[cur]=(S.time[cur]||0)+d;if(view.name==='quiz'&&quiz)quiz.act=(quiz.act||0)+d;const day=new Date().toISOString().slice(0,10);S.tday=S.tday||{};if(S.tday.d!==day)S.tday={d:day};S.tday[cur]=(S.tday[cur]||0)+d}lastAct=now}
 function toggleSave(){const id=quiz.ids[quiz.i];S.saved=S.saved||[];const k=S.saved.indexOf(id);if(k>=0)S.saved.splice(k,1);else S.saved.push(id);save();render()}
 function prep(){const ks=T_().keys;let tot=0,weak=null;ks.forEach(k=>{const cv=cover(k).p/100;const r=(S.rec||{})[k]||[];const acc=r.length?r.reduce((a,b)=>a+b,0)/r.length:0;const conf=Math.min(r.length/10,1);const sc=0.4*cv+0.6*acc*conf;tot+=sc;if(!weak||sc<weak[1])weak=[k,sc]});return {p:Math.round(tot/ks.length*100),weak:weak&&TOPICS[weak[0]].n}}
 function recQ(id,good){S.qs=S.qs||{};const r=S.qs[id]=S.qs[id]||[0,0,0];r[0]++;if(good){r[2]++}else{r[1]++;r[2]=0}}
 function hardList(){const Q=S.qs||{};return Object.keys(Q).map(Number).filter(i=>inCur(i)&&Q[i][1]>=1&&Q[i][2]<3&&(Q[i][1]>=2||Q[i][1]/Q[i][0]>=0.5)).sort((a,b)=>Q[b][1]/Q[b][0]-Q[a][1]/Q[a][0]||Q[b][1]-Q[a][1])}
-function recAdd(k,good){S.rec=S.rec||{};const r=S.rec[k]=S.rec[k]||[];r.push(good?1:0);if(r.length>20)r.shift()}
+function recAdd(k,good){if(typeof quiz!=='undefined'&&quiz&&quiz.ids){const q=QS[quiz.ids[quiz.i]];const tk=(['cd','cl','fs'].includes(q[0])&&TOPICS[q[1]])?q[1]:(q[7]||q[0]);quiz.bt=quiz.bt||{};const b=quiz.bt[tk]=quiz.bt[tk]||[0,0];b[1]++;if(good)b[0]++}S.rec=S.rec||{};const r=S.rec[k]=S.rec[k]||[];r.push(good?1:0);if(r.length>20)r.shift()}
 function start(t){if(S.lock===t){view={name:'locked'};render();window.scrollTo(0,0);return}const ids=build(t);if(!ids.length)return;
   quiz={t,ids,i:0,ok:0,answered:null,opts:null,say:pick(cur!=='en'?THINKF:THINK)};view={name:'quiz'};lastAct=Date.now();render();window.scrollTo(0,0)}
 function answer(choice){
@@ -1208,7 +1208,7 @@ function answer(choice){
   setTimeout(()=>{const f=$('#fb');if(f)f.scrollIntoView({behavior:'smooth',block:'nearest'})},50)}
 function next(){tick();quiz.i++;quiz.answered=null;quiz.opts=null;quiz.say=pick(cur!=='en'?THINKF:THINK);
   if(quiz.i>=quiz.ids.length){const n=quiz.ids.length;if(quiz.ok===n&&n>=10)S.xp+=50;
-    S.history.push({d:Date.now(),t:quiz.t,c:quiz.ok,n});{const L3=S.history.slice(-3);if(S.lock&&S.lock!==quiz.t)S.lock=null;if(L3.length===3&&L3.every(x=>x.t===quiz.t&&x.n>=10&&x.c===x.n))S.lock=quiz.t;}quiz.won=(cur==='ptg'||cur==='ptc')?{acc:[],cor:null}:winAcc(Math.round(quiz.ok/n*100),n);if(S.history.length>3000)S.history=S.history.slice(-3000);save();view={name:'result'}}
+    S.history.push({d:Date.now(),t:quiz.t,c:quiz.ok,n,s:cur,a:Math.round(quiz.act||0),b:quiz.bt||{}});{const L3=S.history.slice(-3);if(S.lock&&S.lock!==quiz.t)S.lock=null;if(L3.length===3&&L3.every(x=>x.t===quiz.t&&x.n>=10&&x.c===x.n))S.lock=quiz.t;}quiz.won=(cur==='ptg'||cur==='ptc')?{acc:[],cor:null}:winAcc(Math.round(quiz.ok/n*100),n);{const w=quiz.won||{};const H=S.history[S.history.length-1];H.w=(w.acc||[]).length+(w.cor?1:0)}if(S.history.length>3000)S.history=S.history.slice(-3000);save();view={name:'result'}}
   render();window.scrollTo(0,0);if(view.name==='result')celebrate(Math.round(quiz.ok/quiz.ids.length*100),quiz.won&&isSp(quiz.won.cor))}
 
 
@@ -1226,7 +1226,7 @@ function setSize(n){S.size=n;save();render()}
 function go(n){view={name:n};render();window.scrollTo(0,0)}
 function stats(t){const h=S.history.filter(x=>x.t===t);if(!h.length)return null;const p=h.map(x=>Math.round(x.c/x.n*100));return {n:h.length,last:p[p.length-1],best:Math.max(...p),avg:Math.round(p.reduce((a,b)=>a+b,0)/p.length),prev:p.length>1?p[p.length-2]:null}}
 
-function render(){const a=$('#app');a.innerHTML=({cnhome,cdhome,ordl,ordq,home,roupeiro,locked,english,eshome,pthome,gram,expl,fqhome,hihome,gehome,splist,spsolve,mapq,plist,psolve,test,quiz:qview,result,prog})[view.name]();if(view.name==='ordq')ordBind();if(view.name==='quiz'&&quiz.oq&&quiz.answered===null&&QS[quiz.ids[quiz.i]][4]==='O'){OQ=quiz.oq;ordBind()}}
+function render(){const a=$('#app');a.innerHTML=({codigo,rep,cnhome,cdhome,ordl,ordq,home,roupeiro,locked,english,eshome,pthome,gram,expl,fqhome,hihome,gehome,splist,spsolve,mapq,plist,psolve,test,quiz:qview,result,prog})[view.name]();if(view.name==='ordq')ordBind();if(view.name==='quiz'&&quiz.oq&&quiz.answered===null&&QS[quiz.ids[quiz.i]][4]==='O'){OQ=quiz.oq;ordBind()}}
 function openTest(c){cur=c;go('test')}
 
 // ===== Problemas: massa, volume e concentração (unidade 17) =====
@@ -1392,7 +1392,7 @@ function roupeiro(){S.acc=S.acc||[];if(CORES.some(c=>!_thumbs[c[0]]))setTimeout(
   :`<div class="cl lock"></div>`).join('')}</div>`).join('')}`}
 
 function home(){const L=level();
- return `<div class="hero hero2 pop"><img src="${IMG.think}" alt="" onclick="go('roupeiro')" style="cursor:pointer"><div class="txt">
+ return `<div class="hero hero2 pop"><img src="${IMG.think}" alt="" onclick="monTap()" style="cursor:pointer"><div class="txt">
  <div class="lvrow"><span class="level">Nível ${L.i} · ${L.n}</span><span class="tag">${S.xp} pontos${L.next?` · faltam ${L.need} para ${L.next}`:' · nível máximo!'}</span></div><div class="xpbar"><i style="width:${L.p}%"></i></div></div></div>
  <div class="grid">
   <button class="subj on" onclick="go('english')" style="--sc:var(--accent)"><span class="ic" style="background:var(--accent)">En</span><h3>Inglês</h3><span class="tag">${shortCd('en')}</span></button>
@@ -1403,7 +1403,7 @@ function home(){const L=level();
   <button class="subj on" onclick="go('hihome')" style="--sc:#a0522d"><span class="ic" style="background:#a0522d">Hi</span><h3>História</h3><span class="tag">${shortCd('hi')}</span></button>
   <button class="subj on" onclick="go('fqhome')" style="--sc:var(--pc)"><span class="ic" style="background:var(--pc)">FQ</span><h3>Físico-Química</h3><span class="tag">${shortCd('fq')}</span></button>
   <button class="subj on" onclick="go('eshome')" style="--sc:#d6336c"><span class="ic" style="background:#d6336c">Es</span><h3>Espanhol</h3><span class="tag">${shortCd('es')}</span></button>
- </div>${syncMsg?`<p class="sync">${syncMsg}</p>`:''}`}
+ </div><button class="ghost" style="width:100%;margin-top:14px;padding:14px;font-weight:800" onclick="go('rep')">Enviar relatório à mãe</button>${syncMsg?`<p class="sync">${syncMsg}</p>`:''}`}
 
 function english(){
  return `${header('home','Inglês')}
@@ -1631,6 +1631,51 @@ function gehome(){
 function cnhome(){
  return `${header('home','Ciências')}
  <button class="testcard pop" style="background:#1f9452;box-shadow:0 5px 0 #146b39" onclick="openTest('cn')"><span class="tag" style="color:#fff;opacity:.85">${TESTS.cn.date}</span><span class="t">${TESTS.cn.name}</span><span>${QS.filter(q=>TESTS.cn.keys.includes(q[0])).length} perguntas para treinar · rondas de 10, 20 ou 30</span></button>`}
+const RSUBJ={pt:'pt',ptg:'pt',ptc:'pt'};
+function hSubj(H){if(H.s)return RSUBJ[H.s]||H.s;const t=H.t.startsWith('sub:')?H.t.split(':')[1]:H.t.startsWith('g:')?'fs':H.t;for(const k in TESTS){const T=TESTS[k];if(T.keys.includes(t)||[T.all,T.err,T.sav,T.hard].includes(t))return RSUBJ[k]||k}return '?'}
+function fmtM(s){const m=Math.round(s/60);return m<1?'menos de 1 min':m<60?m+' min':Math.floor(m/60)+' h '+(m%60)+' min'}
+let REPD=1;
+function repText(days){const now=new Date();const st=days?new Date(now.getFullYear(),now.getMonth(),now.getDate()-(days-1)).getTime():0;
+ const H=(S.history||[]).filter(x=>x.d>=st);const dd=d=>new Date(d).toLocaleDateString('pt-PT',{weekday:'short',day:'numeric',month:'short'});
+ let t=`*Relatório de estudo* · ${days===1?'hoje, '+dd(now):days?'últimos '+days+' dias ('+dd(st)+' a '+dd(now)+')':'desde o início'}\n`;
+ if(!H.length)return t+'\nNenhuma ronda feita neste período.';
+ const by={};H.forEach(x=>{const s=hSubj(x);(by[s]=by[s]||[]).push(x)});
+ const tot=H.reduce((a,x)=>a+(x.a||0),0),ok=H.reduce((a,x)=>a+x.c,0),n=H.reduce((a,x)=>a+x.n,0),w=H.reduce((a,x)=>a+(x.w||0),0);
+ t+=`${H.length} ${H.length===1?'ronda':'rondas'} · ${n} perguntas · ${Math.round(ok/n*100)}% certas`+(tot?` · ${fmtM(tot)} de estudo`:'')+'\n';
+ const sv=cur;
+ Object.keys(by).forEach(s=>{const L=by[s],T=TESTS[s];if(!T)return;cur=s;const P=prep();const o=L.reduce((a,x)=>a+x.c,0),m=L.reduce((a,x)=>a+x.n,0);
+  const dt=daysTo(T.when);t+=`\n*${T.subjName}*`+(dt>=0?` (teste ${new Date(T.when).toLocaleDateString('pt-PT',{day:'numeric',month:'short'})})`:'')+` · preparada ${P.p}%\n`;
+  t+=`${L.length} ${L.length===1?'ronda':'rondas'} · ${Math.round(o/m*100)}% certas`+(days?'':` · ${fmtM(Math.max((S.time||{})[s]||0,L.reduce((a,x)=>a+(x.a||0),0)))}`)+'\n';
+  if(days){const th={};L.forEach(x=>{Object.entries(x.b||{}).forEach(([k,v])=>{const a=th[k]=th[k]||[0,0];a[0]+=v[0];a[1]+=v[1]})});
+   const E=Object.entries(th).filter(([k])=>TOPICS[k]).sort((a,b)=>a[1][0]/a[1][1]-b[1][0]/b[1][1]);
+   E.forEach(([k,v])=>{const p=Math.round(v[0]/v[1]*100);t+=`• ${TOPICS[k].n}: ${v[0]}/${v[1]} ${p>=80?'✅':p>=60?'🟡':'⚠️'}\n`});
+   if(!E.length)t+='• '+[...new Set(L.map(x=>x.t.startsWith('sub:')?SUBN[x.t.slice(4)]:(TOPICS[x.t]||{}).n).filter(Boolean))].join(', ')+'\n'}
+  else if(P.weak&&P.p<85)t+=`Tema mais fraco: ${P.weak}\n`;
+  const er=(S.wrong||[]).filter(i=>inCur(i)).length;if(er)t+=`Erros por rever: ${er}\n`});
+ cur=sv;if(w)t+=`\nPrémios ganhos: ${w}`;return t.trim()}
+function rep(){const opts=[[1,'Hoje'],[2,'Últimos 2 dias'],[3,'Últimos 3 dias'],[4,'Últimos 4 dias'],[5,'Últimos 5 dias'],[0,'Total']];const tx=repText(REPD);
+ return `${header('home','Relatório')}<div class="list" style="flex-direction:row;flex-wrap:wrap;gap:8px">${opts.map(([d,l])=>`<button class="ghost sm" style="${REPD===d?'background:#6a3fd1;color:#fff;border-color:#6a3fd1':''}" onclick="REPD=${d};render()">${l}</button>`).join('')}</div>
+ <pre style="white-space:pre-wrap;background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px;font-family:inherit;font-size:14px;line-height:1.45;margin:14px 0">${esc(tx)}</pre>
+ <a class="big" style="display:block;text-align:center;text-decoration:none" href="https://wa.me/?text=${encodeURIComponent(tx)}" target="_blank" rel="noopener">Enviar por WhatsApp</a>`}
+const GCODES=["5c5f172d15949c59bb507ba7760d7858464c1e15ed316a16cf74cd6a449acc7e", "66569748dd2da73ab3a81581a603dfbc3edcd88382f9371402136d20a47a6507", "62c01b55f954743038b0a63672812d493dfefce47397f48f8669d2689eebe0df", "14bc20dcbbbf4ee3caa5f288c33239af821838deacb389944f0b108dd24cacbb", "3c87f9637085e9028fcc2329beaa91309f290262480b99e0f839324c633ce9a1", "ea3484d4747a8f4a12270630f7674717e2efff809a61cc221d8dc884b7d4c4ee"];
+let MT=0,MTt=null;
+function monTap(){MT++;clearTimeout(MTt);if(MT>=6){MT=0;CODEMSG='';go('codigo');return}MTt=setTimeout(()=>{const n=MT;MT=0;if(n<6)go('roupeiro')},450)}
+let CODEMSG='',CODEPET=null;
+async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function useCode(){const v=(($('#cod')||{}).value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');CODEPET=null;
+ if(v.length!==8){CODEMSG='O código tem 8 caracteres.';render();return}
+ const hh=await sha('monstro-7ano'+v);S.codes=S.codes||[];
+ if(!GCODES.includes(hh)){CODEMSG='Código inválido.';render();return}
+ if(S.codes.includes(hh)){CODEMSG='Este código já foi usado.';render();return}
+ S.acc=S.acc||[];const f=shuffle(Object.keys(ACC).filter(x=>x.startsWith('pet')&&!S.acc.includes(x)));
+ if(!f.length){CODEMSG='Já tens todos os animais!';render();return}
+ S.codes.push(hh);S.acc.push(f[0]);CODEPET=f[0];CODEMSG='';save();render();celebrate&&celebrate(100,false)}
+function codigo(){return `${header('home','Código secreto')}<div class="panel" style="gap:12px">
+ ${CODEPET?`<div class="won pop"><b>Ganhaste um animal novo!</b><div><img src="${ACC[CODEPET]}" alt=""></div><button class="ghost" onclick="go('roupeiro')">Ver no roupeiro</button></div>`:`
+ <p style="margin:0">Escreve o código de 8 caracteres.</p>
+ <input id="cod" class="wrin" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXXXXX" style="text-transform:uppercase;letter-spacing:4px;font-size:22px;text-align:center" onkeydown="if(event.key==='Enter')useCode()">
+ ${CODEMSG?`<p style="margin:0;color:#d63333;font-weight:700">${CODEMSG}</p>`:''}
+ <button class="big" onclick="useCode()">Usar código</button>`}</div>`}
 function hihome(){
  return `${header('home','História')}
  <button class="testcard pop" style="background:#a0522d;box-shadow:0 5px 0 #6e3818" onclick="openTest('hi')"><span class="tag" style="color:#fff;opacity:.85">${TESTS.hi.date}</span><span class="t">${TESTS.hi.name}</span><span>${QS.filter(q=>TESTS.hi.keys.includes(q[0])).length} perguntas para treinar · rondas de 10, 20 ou 30</span></button>`}
@@ -1648,7 +1693,6 @@ function test(){
  return `${header(T_().subj,T_().subjName+' · '+T_().title)}
  <div class="panel prep"><div class="row" style="justify-content:space-between"><h3>Estás preparada?</h3><b class="pp">${P.p}%</b></div><div class="xpbar"><i style="width:${P.p}%"></i></div>
  <p class="muted" style="font-size:13px">${P.p>=85?'Estás muito bem preparada! Continua a rever os erros.':P.p>=60?'Vais no bom caminho. Treina mais:':P.p>0?'Ainda há muito para treinar. Começa por:':'Faz a primeira ronda para veres como estás.'} ${P.p>0&&P.p<85&&P.weak?'<b>'+P.weak+'</b>':''}</p>
- <p class="muted" style="font-size:12px">Conta as perguntas que já viste e os acertos nas últimas respostas de cada matéria.</p>
  <p class="tm">⏱ Tempo de estudo: <b>${fmtT(tm)}</b>${td?` · hoje ${fmtT(td)}`:''}</p></div>
  <div class="sizes"><span class="tag">Perguntas por ronda</span><div class="seg3">${[10,20,30].map(n=>`<button class="${size()===n?'on':''}" onclick="setSize(${n})">${n}</button>`).join('')}</div></div>
 
@@ -1660,7 +1704,7 @@ function test(){
  ${cur==='ge'?`<button class="topic" style="--c:#0f8a8a" onclick="go('splist')"><div style="flex:1;min-width:0"><div class="n">🧮 Problemas de escalas</div><div class="s">${SP.length} problemas resolvidos passo a passo</div></div><span class="best">${SP.filter((x,i)=>(S.sprob||{})[i]&&S.sprob[i].ok).length}/${SP.length}</span></button>`:''}
  ${cur==='fq'?`<button class="topic" style="--c:#e8730c" onclick="go('plist')"><div style="flex:1;min-width:0"><div class="n">🧮 Problemas: massa, volume e concentração</div><div class="s">20 problemas resolvidos passo a passo</div><div class="cov"><div class="cbar"><i style="width:${PROBS.filter((p,i)=>(S.prob||{})[i]&&S.prob[i].ok).length/20*100}%"></i></div><span>Feitos ${PROBS.filter((p,i)=>(S.prob||{})[i]&&S.prob[i].ok).length}/20</span></div></div></button>`:''}
  <div class="pill2"><button onclick="${nw?`start('${T_().err}')`:''}" ${nw?'':'disabled style="opacity:.5"'}>Os meus erros<span>${nw} para rever</span></button>
- <button onclick="${ns?`start('${T_().sav}')`:''}" ${ns?'':'disabled style="opacity:.5"'}>🔖 Guardadas<span>${ns} para rever</span></button></div><div class="pill2"><button onclick="${hardList().length?`start('${T_().hard}')`:''}" ${hardList().length?'':'disabled style="opacity:.5"'}>🔥 Difíceis<span>${hardList().length?hardList().length+' que mais falhas':'Ainda nenhuma'}</span></button></div><div class="pill2"><button onclick="go('prog')">A minha evolução<span>${S.history.filter(x=>[...T_().keys,T_().all,T_().err].includes(x.t)).length} rondas feitas</span></button></div>`}
+ <button onclick="${ns?`start('${T_().sav}')`:''}" ${ns?'':'disabled style="opacity:.5"'}>Guardadas<span>${ns} para rever</span></button></div><div class="pill2"><button onclick="${hardList().length?`start('${T_().hard}')`:''}" ${hardList().length?'':'disabled style="opacity:.5"'}>Difíceis<span>${hardList().length?hardList().length+' que mais falhas':'Ainda nenhuma'}</span></button></div><div class="pill2"><button onclick="go('prog')">A minha evolução<span>${S.history.filter(x=>[...T_().keys,T_().all,T_().err].includes(x.t)).length} rondas feitas</span></button></div>`}
 
 function fmt(s){s=esc(s);const m=s.match(/^([a-zA-Z]) = ([a-zA-Z]+) \/ ([a-zA-Z]+)$/);if(m)return `${m[1]} = <span class="frac"><span>${m[2]}</span><span>${m[3]}</span></span>`;return s}
 function toggleSel(j){if(quiz.answered!==null)return;quiz.sel=quiz.sel||[];const k=quiz.sel.indexOf(j);if(k>=0)quiz.sel.splice(k,1);else quiz.sel.push(j);render()}
