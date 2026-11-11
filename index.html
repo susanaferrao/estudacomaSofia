@@ -1237,7 +1237,7 @@ let S = load();
 let quiz = null, view = {name:'home'}, dbref = null, syncMsg = '';
 
 function blank(){return {xp:0,history:[],wrong:[],sub:{},seen:{},updated:0}}
-function load(){try{const r=localStorage.getItem(KEY);if(r){const o=Object.assign(blank(),JSON.parse(r));if(Array.isArray(o.acc))o.acc=o.acc.filter(k=>k!=='pet073'&&k!=='pet083');if(o.wear&&['pet073','pet083'].includes(o.wear.pet))o.wear.pet=null;return o}}catch(e){}return blank()}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const o=Object.assign(blank(),JSON.parse(r));if(o.home)o.home.dev=false;if(Array.isArray(o.acc))o.acc=o.acc.filter(k=>k!=='pet073'&&k!=='pet083');if(o.wear&&['pet073','pet083'].includes(o.wear.pet))o.wear.pet=null;return o}}catch(e){}return blank()}
 let saveT=null;
 function save(){S.updated=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
   if(dbref){clearTimeout(saveT);saveT=setTimeout(()=>{dbref.set(JSON.parse(JSON.stringify(S))).catch(()=>{})},800)}}
@@ -1750,7 +1750,7 @@ async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncod
 async function useCode(){const v=(($('#cod')||{}).value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');CODEPET=null;
  if(v.length!==8){CODEMSG='O código tem 8 caracteres.';render();return}
  const hh=await sha('monstro-7ano'+v);S.codes=S.codes||[];
- if(hh===DEVH){const H=H_();H.dev=true;H.food+=10;H.soap+=10;H.love+=40;save();go('casa');return}if(!GCODES.includes(hh)){CODEMSG='Código inválido.';render();return}
+ if(hh===DEVH){S.acc=S.acc||[];Object.keys(ACC).filter(k=>!k.startsWith('pet')).forEach(k=>{if(!S.acc.includes(k))S.acc.push(k)});const H=H_();H.dev=false;save();go('home');return}if(!GCODES.includes(hh)){CODEMSG='Código inválido.';render();return}
  if(S.codes.includes(hh)){CODEMSG='Este código já foi usado.';render();return}
  S.acc=S.acc||[];const f=shuffle(Object.keys(ACC).filter(x=>x.startsWith('pet')&&!S.acc.includes(x)));
  if(!f.length){CODEMSG='Já tens todos os animais!';render();return}
@@ -1821,7 +1821,7 @@ function casaFx(){const b=document.getElementById('big');if(!b||!HFX)return;cons
  if(fx.t==='foam'&&fx.was){add('stinkfx wv',{});b.querySelector('.pet').classList.add('unmurk');add('fly flyout',{top:'18%',left:'22%'});add('fly flyout',{top:'10%',left:'62%',animationDelay:'-1s,0s'})}
  if(fx.t==='foam'){for(let i=0;i<48;i++){const s=12+Math.random()*34;add('bub',{width:s+'px',height:s+'px',left:(18+Math.random()*64)+'%',top:(12+Math.random()*70)+'%',animationDelay:(Math.random()*1.2)+'s'})}
   setTimeout(()=>{add('flash',{});for(let i=0;i<5;i++){const s=18+Math.random()*16;add('shine',{width:s+'px',height:s+'px',left:(20+Math.random()*60)+'%',top:(15+Math.random()*60)+'%',animationDelay:(i*.08)+'s'})}},3300)}}
-const DEVH='21f3b913508ecb1f276dadb37aae8a57a04d59a71dc84678cebf959900795299';
+const DEVH='ddc2a2ed460e31a1d001e7131af3a2ea84f5f3f5dd844b56ea71bd87f18c9020';
 
 function hihome(){
  return `${header('home','História')}
