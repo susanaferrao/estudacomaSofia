@@ -175,7 +175,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .casa .house{background:#fff7e6;border:3px solid #f2d9a6;border-radius:24px;padding:12px}
 .casa .house h2,.casa .sec{font-family:'Baloo 2';font-size:20px;margin:0 0 8px}
 .casa .slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.casa .slot{position:relative;aspect-ratio:1;background:#fff;border:3px solid #f2d9a6;border-radius:18px;display:grid;place-items:center;cursor:pointer;overflow:visible}
+.casa .slot .wb{position:absolute;top:-6px;right:-6px;background:#e03131;color:#fff;border-radius:50%;width:22px;height:22px;font-weight:800;font-size:14px;display:grid;place-items:center;z-index:3}.hwarn{background:#ffe3e3;border:2px solid #e03131;color:#a11;border-radius:14px;padding:8px 12px;margin:6px 0;font-size:14px}.slot{position:relative;aspect-ratio:1;background:#fff;border:3px solid #f2d9a6;border-radius:18px;display:grid;place-items:center;cursor:pointer;overflow:visible}
 .casa .slot.lock{background:#efe7d6;border-style:dashed;cursor:default;color:#a8987a;font-size:11px;font-weight:800;text-align:center;padding:4px}
 .casa .slot.sel{border-color:var(--pur);box-shadow:0 0 0 3px #d9ccfa}
 .casa .pet{width:86%;height:86%;object-fit:contain;position:relative;z-index:2}
@@ -1472,7 +1472,7 @@ function winAcc(p,n){const out={acc:[],cor:null};if(n<10||p<80)return out;S.acc=
  const freeAcc=k=>shuffle(Object.keys(ACC).filter(x=>!S.acc.includes(x)&&(k==='pet'?x.startsWith('pet'):!x.startsWith('pet'))));
  const giveCor=()=>{const spf=CORES.filter(c=>isSp(c[0])&&!S.cores.includes(c[0]));if(spf.length&&Math.random()<.15){out.cor=pick(spf)[0];S.cores.push(out.cor);return true}let pool=CORES.filter(c=>!S.cores.includes(c[0])&&c[2]!==null&&!isSp(c[0]));if(!pool.length)pool=spf;if(!pool.length)pool=CORES.filter(c=>!S.cores.includes(c[0]));if(!pool.length)return false;out.cor=pick(pool)[0];S.cores.push(out.cor);return true};
  const give=k=>{const f=freeAcc(k);if(!f.length)return false;out.acc=[f[0]];S.acc.push(f[0]);return true};
- if(n<20){ if(p===100){ if(Math.random()<.5){if(!giveCor())give('pet')} else {if(!give('pet'))giveCor()} } else {if(!give('acc')){if(homeOn())giveItems(out);else give('pet')}} }
+ if(n<20){ if(p===100){ if(Math.random()<.5){if(!giveCor())give('pet')} else {if(!give('pet'))giveCor()} } else {if(!give('acc')){if(homeOn())giveItems(out,p);else give('pet')}} }
  else { if(p===100){ if(Math.random()<.5){if(!giveCor())give('pet')} else {if(!give('pet'))giveCor()} } else {if(!give('pet'))give('acc')} }
  return out}
 function spWin(W){return W&&W.cor&&isSp(W.cor)?`<div class="spwin pop"><b>✨ MONSTRO ESPECIAL! ✨</b><img src="${SKIN[W.cor].happy}" alt=""><p>Ganhaste o monstro <b>${corOf(W.cor)[1].replace(' ✨','')}</b>! É raro e só usa animais.</p><button class="ghost" onclick="setCor('${W.cor}');go('roupeiro')">Vestir já</button></div>`:''}
@@ -1781,26 +1781,31 @@ const HLV=['Bebé','Amigo','Bom amigo','Melhor amigo','Evolução'];
 function H_(){S.home=S.home||{food:0,soap:0,love:0,slots:2,house:[],p:{},evos:0,lastSlot:'',day:'',sec:0,seen:false,dev:false};return S.home}
 function homeOn(){const h=H_();if(h.dev)return true;S.acc=S.acc||[];return Object.keys(ACC).filter(x=>!x.startsWith('pet')).every(x=>S.acc.includes(x))}
 function hp(k){const h=H_();return h.p[k]=h.p[k]||{lv:0,love:0,h:0,d:0,evo:false}}
-function hst(k){const p=hp(k);return{stink:p.d>=7,hungry:p.h>=7}}
-function homeDay(){if(!homeOn())return;const h=H_(),t=new Date().toISOString().slice(0,10);if(h.day===t)return;h.day=t;homeAdvance(1)}
-function homeAdvance(n){const h=H_();let m='';h.house.forEach(k=>{const p=hp(k);p.h+=n;p.d+=n;if(p.evo&&p.h>=14){p.evo=false;p.lv=3;p.love=0;m='Um animal evoluído ficou muito tempo com fome e voltou à forma base.'}});return m}
+function hToday(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function hMeals(k){const p=hp(k);return p.fd===hToday()?(p.fe||0):0}
+function hst(k){const p=hp(k),m=hMeals(k);return{stink:p.bd!==hToday(),hungry:m<2,meals:m,warn:(p.m||0)>=1&&m<2}}
+function homeDay(){if(!homeOn())return '';const h=H_(),t=hToday();
+ if(!h.v2){h.v2=1;h.day=t;h.house.forEach(k=>{const p=hp(k);p.bd=t;p.m=0});return ''}
+ if(h.day===t)return '';const n=Math.max(1,Math.round((new Date(t)-new Date(h.day||t))/864e5));const last=h.day;h.day=t;return homeAdvance(n,last)}
+function homeAdvance(n,last){const h=H_();let m='';h.house.forEach(k=>{const p=hp(k);const lm=p.fd===last?(p.fe||0):0;p.m=(lm>=2?0:(p.m||0)+1)+(n-1);
+ if(p.evo&&p.m>=2){p.evo=false;p.lv=3;p.love=0;p.m=0;m='Um animal evoluído passou 2 dias sem comer o suficiente e voltou à forma base.'}});return m}
 function homeSlots(){const h=H_(),mo=new Date().toISOString().slice(0,7),tgt=Math.min(8,2+Math.floor(h.evos/2));if(h.slots<tgt&&(h.lastSlot!==mo||h.dev)){h.slots++;h.lastSlot=mo;return true}return false}
-function giveItems(out){const h=H_();const r=Math.floor(Math.random()*3);const it={food:0,soap:0,love:0};it[['food','soap','love'][r]]=1;h.food+=it.food;h.soap+=it.soap;h.love+=it.love;out.items=it}
+function giveItems(out,pc){const h=H_();const x=Math.random(),it={food:0,soap:0,love:0};it[x<.5?'love':x<.75?'food':'soap']=pc>=90?2:1;h.food+=it.food;h.soap+=it.soap;h.love+=it.love;out.items=it}
 let HS=null,HMSG='',HFX=null;
-function casa(){const h=H_();S.acc=S.acc||[];if(!h.seen){h.seen=true;save()}if(homeSlots()){HMSG='Ganhaste um lugar novo em casa!';save()}
+function casa(){const h=H_();S.acc=S.acc||[];if(!h.seen){h.seen=true;save()}{const dm=homeDay();if(dm)HMSG=dm;save()}if(homeSlots()){HMSG='Ganhaste um lugar novo em casa!';save()}
  const own=Object.keys(ACC).filter(k=>k.startsWith('pet')&&S.acc.includes(k));h.house=h.house.filter(k=>own.includes(k));
  if(!HS||!own.includes(HS))HS=h.house[0]||own[0]||null;
  const img=k=>hp(k).evo&&EVO[k]?EVO[k]:ACC[k];
  const cls=k=>{const p=hp(k),s=hst(k);return (s.stink?' stink':'')+(p.evo?' evo':'')+(p.lv>=4&&!p.evo?' glow':'')};
  const petH=(k,big)=>{const p=hp(k),s=hst(k);return `${p.evo?'<span class="spk" style="top:6%;left:10%"></span><span class="spk" style="top:14%;right:8%;animation-delay:-.6s"></span><span class="spk" style="bottom:14%;left:16%;animation-delay:-1.1s"></span>':''}<img class="pet" src="${img(k)}" alt="">${s.stink?'<span class="fly" style="top:18%;left:22%"></span><span class="fly" style="top:10%;left:62%;animation-delay:-1s"></span>':''}${big?'':`<span class="lv">${p.evo?'Evoluído':'Nv '+(p.lv+1)}</span>`}`};
- const slots=[...Array(8)].map((_,i)=>{const k=h.house[i];if(i>=h.slots)return `<div class="slot lock">Lugar ${i+1}</div>`;if(!k)return `<div class="slot" style="color:var(--mut);font-size:12px;font-weight:800">vazio</div>`;return `<div class="slot${cls(k)}${k===HS?' sel':''}" onclick="hPick('${k}')">${petH(k)}</div>`}).join('');
+ const slots=[...Array(8)].map((_,i)=>{const k=h.house[i];if(i>=h.slots)return `<div class="slot lock">Lugar ${i+1}</div>`;if(!k)return `<div class="slot" style="color:var(--mut);font-size:12px;font-weight:800">vazio</div>`;return `<div class="slot${cls(k)}${k===HS?' sel':''}" onclick="hPick('${k}')">${petH(k)}${hst(k).warn?'<span class="wb">!</span>':''}</div>`}).join('');
  const store=own.filter(k=>!h.house.includes(k)).map(k=>`<div class="slot${k===HS?' sel':''}" onclick="hPick('${k}')"><img class="pet" src="${img(k)}" alt=""><span class="zz">zZ</span></div>`).join('');
  const bar=(l,v,c,t)=>`<div class="bar"><label><span>${l}</span><span>${t}</span></label><i><b style="width:${v}%;background:${c}"></b></i></div>`;
  let panel='';if(HS){const p=hp(HS),s=hst(HS),inH=h.house.includes(HS);
   panel=`<div class="panel"><div class="hbig ${cls(HS)}" id="big">${petH(HS,1)}</div>
   <div style="text-align:center;font-weight:800;font-size:20px">${HFX&&HFX.t==='charge'?'A evoluir…':p.evo?'Evoluído':HLV[p.lv]}${p.lv>=4&&!p.evo&&!EVO[HS]?' · brilho':''}</div>
-  ${inH?`${bar('Comida',100-Math.min(100,p.h/7*100),'var(--food)',s.hungry?'com fome':(7-p.h)+' dias até ter fome')}
-  ${bar('Limpeza',100-Math.min(100,p.d/7*100),'var(--soap)',s.stink?'a cheirar mal':(7-p.d)+' dias até cheirar mal')}
+  ${inH?`${s.warn?`<div class="hwarn"><b>Atenção!</b> Ontem não comeu 2 vezes. ${p.evo?'Se hoje também não comer 2 vezes, perde a evolução!':'Dá-lhe de comer hoje.'}</div>`:''}${bar('Comida',s.meals*50,'var(--food)',s.meals>=2?'2/2 refeições hoje':s.meals+'/2 refeições hoje')}
+  ${bar('Limpeza',s.stink?0:100,'var(--soap)',s.stink?'precisa de banho hoje':'limpo hoje')}
   ${bar('Amizade',p.evo||p.lv>=4?100:p.love*10,'var(--love)',p.evo||p.lv>=4?'nível máximo':p.love+'/10 corações')}
   <div class="btns"><button onclick="hFeed()" ${h.food?'':'disabled'}><img class="bic" src="${HICO.food}" alt="">Dar comida<br><small>tens ${h.food}</small></button><button onclick="hBath()" ${h.soap?'':'disabled'}><img class="bic" src="${HICO.soap}" alt="">Dar banho<br><small>tens ${h.soap}</small></button><button onclick="hLove()" ${h.love&&p.lv<4?'':'disabled'}><img class="bic" src="${HICO.love}" alt="">Brincar<br><small>${h.love} corações</small></button></div>
   <div class="btns" style="grid-template-columns:1fr"><button onclick="hStore()">Guardar (vai dormir)</button></div>`
@@ -1811,7 +1816,7 @@ function casa(){const h=H_();S.acc=S.acc||[];if(!h.seen){h.seen=true;save()}if(h
  <div class="house"><h2>Em casa · ${h.house.length}/${h.slots}</h2><div class="slots">${slots}</div></div>
  ${panel||'<p class="muted">Ainda não tens animais.</p>'}
  <h2 class="sec" style="margin-top:16px">Guardados</h2><div class="store">${store}</div>
- <p class="muted" style="font-size:13px;margin-top:14px">Rondas de 80–99% dão uma comida, um sabonete ou um coração. Cada 10 minutos de estudo dá mais um coração. A cada 2 evoluções ganhas um lugar novo em casa (no máximo um por mês).</p>
+ <p class="muted" style="font-size:13px;margin-top:14px">Os animais em casa precisam de banho todos os dias e de comer 2 vezes por dia. Um animal evoluído que passe 2 dias seguidos sem comer 2 vezes perde a evolução. Rondas de 80–89% dão uma comida, um sabonete ou um coração; rondas de 90–99% dão 2 da mesma coisa (o coração sai mais vezes). Cada 10 minutos de estudo dá mais um coração. A cada 2 evoluções ganhas um lugar novo em casa (no máximo um por mês).</p>
  ${h.dev?`<div class="note"><b>Modo de teste</b><div class="dev"><button onclick="HMSG=homeAdvance(1)||'Passou um dia de estudo.';save();render()">+1 dia de estudo</button><button onclick="HMSG=homeAdvance(7)||'Passaram 7 dias de estudo.';save();render()">+7 dias</button><button onclick="H_().food+=5;H_().soap+=5;H_().love+=20;save();render()">+ itens</button><button onclick="H_().evos+=2;save();render()">+1 lugar</button><button onclick="H_().dev=false;save();go('home')">Sair do modo de teste</button></div></div>`:''}
  </div>`}
 function houseReveal(){const h=H_();if(h.revealed||!homeOn()||document.getElementById('hrv'))return;h.revealed=true;save();
@@ -1821,14 +1826,14 @@ function houseReveal(){const h=H_();if(h.revealed||!homeOn()||document.getElemen
   const C=['#ffd54a','#ff7ab6','#8b5cf6','#38bdf8','#4ade80','#fb923c'];for(let i=0;i<50;i++){const c=document.createElement('span');c.className='hrv-cf';c.style.background=C[i%6];const a=Math.random()*6.283,d=120+Math.random()*160;c.style.setProperty('--dx',Math.cos(a)*d+'px');c.style.setProperty('--dy',(Math.sin(a)*d-60)+'px');c.style.animationDelay=(Math.random()*.2)+'s';st.appendChild(c)}
   o.classList.add('open')},1800)}
 function hPick(k){HS=k;HMSG='';render()}
-function hFeed(){const h=H_(),p=hp(HS);h.food--;p.h=0;HMSG='Nham nham! Já não tem fome.';HFX={k:HS,t:'eat'};save();render()}
-function hBath(){const h=H_(),p=hp(HS);const was=hst(HS).stink;h.soap--;p.d=0;HMSG='Banho tomado!';HFX={k:HS,t:'foam',was};save();render()}
-function hLove(){const h=H_(),p=hp(HS);if(hst(HS).hungry){HMSG='Está com fome: dá-lhe comida antes de brincar.';render();return}h.love--;p.love++;HMSG='';
+function hFeed(){const h=H_(),p=hp(HS),t=hToday();if(hMeals(HS)>=2){HMSG='Já comeu 2 vezes hoje. Volta amanhã!';render();return}h.food--;if(p.fd!==t){p.fd=t;p.fe=0}p.fe++;HMSG=p.fe>=2?'Nham nham! Barriga cheia por hoje.':'Nham nham! Falta mais uma refeição hoje.';HFX={k:HS,t:'eat'};save();render()}
+function hBath(){const h=H_(),p=hp(HS);const was=hst(HS).stink;if(!was){HMSG='Já tomou banho hoje.';render();return}h.soap--;p.bd=hToday();HMSG='Banho tomado!';HFX={k:HS,t:'foam',was};save();render()}
+function hLove(){const h=H_(),p=hp(HS);if(hMeals(HS)<1){HMSG='Está com fome: dá-lhe comida antes de brincar.';render();return}h.love--;p.love++;HMSG='';
  if(p.love>=10){p.love=0;p.lv++;HMSG='Subiu de nível: '+HLV[Math.min(p.lv,4)]+'!';
   if(p.lv>=4){p.lv=4;if(EVO[HS]){HMSG='Está a evoluir…';HFX={k:HS,t:'charge'};save();render();const k=HS;setTimeout(()=>{hp(k).evo=true;H_().evos++;HMSG='EVOLUIU!';if(homeSlots())HMSG='EVOLUIU! E ganhaste um lugar novo em casa!';HFX={k,t:'evolve'};save();if(view.name==='casa')render()},5700);return}else HMSG='Nível máximo! Ganhou brilho até a evolução estar pronta.'}}
  HFX={k:HS,t:'heart'};save();render()}
 function hStore(){const h=H_();h.house=h.house.filter(k=>k!==HS);HMSG='Foi dormir.';save();render()}
-function hHouse(){const h=H_();h.house.push(HS);HMSG='Chegou a casa!';save();render()}
+function hHouse(){const h=H_();h.house.push(HS);{const p=hp(HS);p.bd=hToday();p.m=0}HMSG='Chegou a casa!';save();render()}
 function casaFx(){const b=document.getElementById('big');if(!b||!HFX)return;const fx=HFX;HFX=null;
  const add=(c,css)=>{const e=document.createElement('span');e.className=c;for(const [k,v] of Object.entries(css)){if(k.startsWith('--'))e.style.setProperty(k,v);else e.style[k]=v}b.appendChild(e);return e};
  if(fx.t==='heart'){for(let i=0;i<8;i++){const h=add('heart',{left:(22+Math.random()*56)+'%',top:(45+Math.random()*25)+'%',fontSize:(28+Math.random()*18)+'px',animationDelay:(i*.18)+'s'});h.textContent='♥'}}
@@ -1916,7 +1921,7 @@ function result(){const n=quiz.ids.length,p=Math.round(quiz.ok/n*100);
  const msg=p===100?'PERFEITO! +50 pontos bónus!':p>=90?'Estás pronta para o teste!':p>=70?'Muito bem! Mais uma ronda e chegas aos 90%.':p>=50?'Vais no bom caminho. Revê os erros!':'Não desistas: lê os cartões e tenta outra vez.';
  return `<div class="res pop"><img src="${img}" alt=""><span class="tag">${quiz.t.startsWith('sub:')?SUBN[quiz.t.slice(4)]:TOPICS[quiz.t].n}</span><div class="score">${p}%</div><div class="sub2">${quiz.ok} certas em ${n}</div>
  <div class="stars">${[0,1,2].map(i=>`<span class="${i<st?'':'off'}">★</span>`).join('')}</div><h3>${msg}</h3><p class="muted">Ganhaste ${quiz.ok*10+(p===100&&n>=10?50:0)} pontos.</p></div>
- ${spWin(quiz.won)}${quiz.won&&quiz.won.items?`<div class="won pop"><b>Ganhaste para a tua casa!</b><div class="wonic">${(k=>`<span><img src="${HICO[k]}" alt="">1 ${({food:'comida',soap:'sabonete',love:'coração'})[k]}</span>`)(Object.keys(quiz.won.items).find(k=>quiz.won.items[k]))}</div><button class="ghost" onclick="go('casa')">Ir para casa</button></div>`:''}${quiz.won&&(quiz.won.acc.length||quiz.won.cor)&&!isSp(quiz.won.cor)?`<div class="won pop"><b>${quiz.won.cor&&quiz.won.acc.length?'Ganhaste um acessório e uma cor nova!':quiz.won.cor?'Ganhaste uma cor nova!':(quiz.won.acc[0]||'').startsWith('pet')?'Ganhaste um animal novo! 🐾':'Ganhaste um acessório novo!'}</b>${quiz.won.cor?`<p>Cor nova: <b>${corOf(quiz.won.cor)[1]}</b> 🎨</p>`:''}<div>${quiz.won.acc.map(k=>`<img src="${ACC[k]}" alt="">`).join('')}</div><button class="ghost" onclick="go('roupeiro')">Ir ao roupeiro</button></div>`:''}
+ ${spWin(quiz.won)}${quiz.won&&quiz.won.items?`<div class="won pop"><b>Ganhaste para a tua casa!</b><div class="wonic">${(k=>`<span><img src="${HICO[k]}" alt="">${quiz.won.items[k]} ${(quiz.won.items[k]>1?{food:'comidas',soap:'sabonetes',love:'corações'}:{food:'comida',soap:'sabonete',love:'coração'})[k]}</span>`)(Object.keys(quiz.won.items).find(k=>quiz.won.items[k]))}</div><button class="ghost" onclick="go('casa')">Ir para casa</button></div>`:''}${quiz.won&&(quiz.won.acc.length||quiz.won.cor)&&!isSp(quiz.won.cor)?`<div class="won pop"><b>${quiz.won.cor&&quiz.won.acc.length?'Ganhaste um acessório e uma cor nova!':quiz.won.cor?'Ganhaste uma cor nova!':(quiz.won.acc[0]||'').startsWith('pet')?'Ganhaste um animal novo! 🐾':'Ganhaste um acessório novo!'}</b>${quiz.won.cor?`<p>Cor nova: <b>${corOf(quiz.won.cor)[1]}</b> 🎨</p>`:''}<div>${quiz.won.acc.map(k=>`<img src="${ACC[k]}" alt="">`).join('')}</div><button class="ghost" onclick="go('roupeiro')">Ir ao roupeiro</button></div>`:''}
  <button class="big" onclick="start('${quiz.t}')">Nova ronda</button>
  ${S.wrong.filter(i=>inCur(i)).length?`<button class="ghost" onclick="start('${T_().err}')">Rever os meus erros (${S.wrong.filter(i=>inCur(i)).length})</button>`:''}
  <button class="ghost" onclick="go('test')">Voltar às matérias</button>`}
